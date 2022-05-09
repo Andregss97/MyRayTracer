@@ -457,6 +457,14 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 {
 	//INSERT HERE YOUR CODE
 
+	// https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tracing/implementing-the-raytracing-algorithm#:~:text=The%20ray%2Dtracing%20algorithm%20takes,the%20center%20of%20that%20pixel.
+	
+	for (int j = 0; j < RES_Y; ++j) {
+		for (int i = 0; i < RES_X; ++i) {
+			// search for intersection
+		}
+	}
+
 	/*unsigned int index;
 
 	float cosI = I * N;

@@ -70,17 +70,23 @@ public:
 		v = n % u;
 	}
 
+	// PRIMARY RAY: 
+	// Two important variables: point of origin (eye) and vector that defines ray direction (ray_dir)
 	Ray PrimaryRay(const Vector& pixel_sample) //  Rays cast from the Eye to a pixel sample which is in Viewport coordinates
 	{
+		// Vector ps is vector from origin to pixel
 		Vector ps;
 		ps.x = w * (pixel_sample.x / res_x - 0.5f);
 		ps.y = h * (pixel_sample.y / res_y - 0.5f);
 		ps.z = -plane_dist;
 
+		// transform vector to world coordinates
 		Vector vX = u * ps.x;
 		Vector vY = u * ps.y;
 		Vector vZ = u * ps.z;
-		Vector ray_dir = (vX + vY + vZ).normalize();		
+
+		// normalized ray direction using vector
+		Vector ray_dir = (vX + vY + vZ).normalize();	
 
 		return Ray(eye, ray_dir);  
 	}
@@ -88,6 +94,7 @@ public:
 	Ray PrimaryRay(const Vector& lens_sample, const Vector& pixel_sample) // DOF: Rays cast from  a thin lens sample to a pixel sample
 	{
 		Vector ps;
+		// nao seria diferenca entre pixel_sample.x - lens_sample.x ?? para conseguir distancia entre o lens_sample e o pixel i mean 
 		ps.x = w * (pixel_sample.x / res_x - 0.5f);
 		ps.y = h * (pixel_sample.y / res_y - 0.5f);
 		ps.z = -plane_dist;
