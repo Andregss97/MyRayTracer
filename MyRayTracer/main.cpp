@@ -23,6 +23,7 @@
 #include "rayAccelerator.h"
 #include "maths.h"
 #include "macros.h"
+#include "vector.h"
 
 //Enable OpenGL drawing.  
 bool drawModeEnabled = true;
@@ -455,10 +456,16 @@ void setupGLUT(int argc, char* argv[])
 
 Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medium 1 where the ray is travelling
 {
-	//INSERT HERE YOUR CODE
+
+	// guiei-me por isto https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tracing/ray-tracing-practical-example
+	// pHit -> ponto de intereccao
+	// nHit -> normal de pHit
+
 	Object* object = NULL;
 	float minDist = INFINITY;
+
 	Vector pHit;
+	Vector nHit;
 
 	vector<Object*> objs;
 	int num_objects = scene->getNumObjects();
@@ -467,16 +474,46 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		objs.push_back(scene->getObject(o));
 	}
 
+	Color color;
 
 	// search for intersections -> choose closest object
 	for (int k = 0; k < num_objects; ++k) {
 		float dist = distance(&ray.origin, &pHit);
+
 		if (objs[k]->intercepts(ray, minDist) && dist < minDist) {
 			minDist = dist;
 			object = objs[k];
 		}
 	}
 
+	// 3 cases: https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-overview/light-transport-ray-tracing-whitted
+	// case1 -> surface is opaque and difusse (default case). Use Phong model to calculate illumination
+	// case2 -> surface is mirror like. Trace another REFLECTION ray at the intersection point
+	// case3 -> surface is transparent. Cast another REFLECTION and REFRACTION ray at the intersection point. 
+
+	if (object == NULL) {
+		color = Color(0.0f, 0.0f, 0.0f);
+	}
+
+	// object is transparent
+	// not sure do valor a comparar com o refraction index
+	if ((object->GetMaterial()->GetRefrIndex() < 1 || object->GetMaterial()->GetTransmittance() == 1) && depth < MAX_DEPTH) {
+		// compute reflection and refraction ray
+
+	}
+
+	// object is mirror like
+	// ainda nao sei bem como será esta
+	//if ()
+
+	// default -> Blinn-Phong
+	else {
+
+	}
+
+	return color;
+
+	//INSERT HERE YOUR CODE
 	/*unsigned int index;
 
 	float cosI = I * N;
@@ -485,7 +522,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	float Nl;
 
 	for (int = l = 0; */
-	return Color(0.0f, 0.0f, 0.0f);
+	//return Color(0.0f, 0.0f, 0.0f);
 }
 
 

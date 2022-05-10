@@ -7,6 +7,14 @@
 #include "macros.h"
 
 
+
+// acho que isto pode ajudar com as interceptions! 
+// https://www.scratchapixel.com/code.php?id=8&origin=/lessons/3d-basic-rendering/ray-tracing-overview
+
+
+
+
+
 Triangle::Triangle(Vector& P0, Vector& P1, Vector& P2)
 {
 	points[0] = P0; points[1] = P1; points[2] = P2;
