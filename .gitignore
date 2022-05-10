@@ -1,3 +1,4 @@
 
 .vs/MyRayTracer/v16/Browse.VC.opendb
 *.db
+*.db-shm

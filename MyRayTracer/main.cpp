@@ -456,12 +456,24 @@ void setupGLUT(int argc, char* argv[])
 Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medium 1 where the ray is travelling
 {
 	//INSERT HERE YOUR CODE
+	Object* object = NULL;
+	float minDist = INFINITY;
+	Vector pHit;
 
-	// https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tracing/implementing-the-raytracing-algorithm#:~:text=The%20ray%2Dtracing%20algorithm%20takes,the%20center%20of%20that%20pixel.
-	
-	for (int j = 0; j < RES_Y; ++j) {
-		for (int i = 0; i < RES_X; ++i) {
-			// search for intersection
+	vector<Object*> objs;
+	int num_objects = scene->getNumObjects();
+
+	for (int o = 0; o < num_objects; o++) {
+		objs.push_back(scene->getObject(o));
+	}
+
+
+	// search for intersections -> choose closest object
+	for (int k = 0; k < num_objects; ++k) {
+		float dist = distance(&ray.origin, &pHit);
+		if (objs[k]->intercepts(ray, minDist) && dist < minDist) {
+			minDist = dist;
+			object = objs[k];
 		}
 	}
 

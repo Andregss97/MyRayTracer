@@ -16,6 +16,7 @@ public:
 	float length();
 
 	float getAxisValue(int axis);
+	float distance(const Vector& v, const Vector& w);
 
 	Vector&	normalize();
 	Vector operator=(const Vector& v);
