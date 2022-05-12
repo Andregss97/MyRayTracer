@@ -47,9 +47,47 @@ Vector Triangle::getNormal(Vector point)
 //
 
 bool Triangle::intercepts(Ray& r, float& t ) {
+	Vector vertex0 = points[0];
+	Vector vertex1 = points[1];
+	Vector vertex2 = points[2];
+	Vector edge1, edge2, h, s, q;
+	float a, f, u, v;
+	edge1 = vertex1 - vertex0;
+	edge2 = vertex2 - vertex0;
 
-	//PUT HERE YOUR CODE
-	return (false);
+	Vector rayVector = r.direction;
+
+	h = rayVector.crossProduct(edge2);
+
+	a = edge1.dotProduct(h);
+
+	if (a > -EPSILON && a < EPSILON)
+		return false;    // This ray is parallel to this triangle.
+	f = 1.0 / a;
+
+	Vector rayOrigin = r.origin;
+
+	s = rayOrigin - vertex0;
+
+	u = f * s.dotProduct(h);
+
+	if (u < 0.0 || u > 1.0)
+		return false;
+
+	q = s.crossProduct(edge1);
+
+	v = f * rayVector.dotProduct(q);
+
+	if (v < 0.0 || u + v > 1.0)
+		return false;
+	// At this stage we can compute t to find out where the intersection point is on the line.
+	t = f * edge2.dotProduct(q);
+	if (t > EPSILON) // ray intersection
+	{
+		return true;
+	}
+	else // This means that there is a line intersection but not a ray intersection.
+		return false;
 }
 
 Plane::Plane(Vector& a_PN, float a_D)
@@ -93,8 +131,35 @@ Vector Plane::getNormal(Vector point)
 
 bool Sphere::intercepts(Ray& r, float& t )
 {
-	//PUT HERE YOUR CODE
-  return (false);
+	float t0, t1;
+	float radius2 = pow(radius, 2);
+
+	Vector L = r.origin - center;
+	Vector dir = r.direction;
+	float a = dir.dotProduct(dir);
+	float b = 2 * dir.dotProduct(L);
+	float c = L.dotProduct(L) - radius2;
+	float discr = b * b - 4 * a * c;
+
+	if (discr < 0) return false;
+	else if (discr == 0) t0 = t1 = -0.5 * b / a;
+	else {
+		float q = (b > 0) ?
+			-0.5 * (b + sqrt(discr)) :
+			-0.5 * (b - sqrt(discr));
+		t0 = q / a;
+		t1 = c / q;
+	}
+	if (t0 > t1) std::swap(t0, t1);
+
+	if (t0 < 0) {
+		t0 = t1; // if t0 is negative, let's use t1 instead 
+		if (t0 < 0) return false; // both t0 and t1 are negative 
+	}
+
+	t = t0;
+
+	return true;
 }
 
 

@@ -30,6 +30,8 @@ public:
 	Vector&	operator-=	(const float v);
 	Vector&	operator*=	(const float v);
 	Vector&	operator+=	(const float v);
+	Vector& crossProduct(const Vector& v);
+	float dotProduct(const Vector& v);
 
 	float x;
 	float y;
