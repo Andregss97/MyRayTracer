@@ -457,15 +457,13 @@ void setupGLUT(int argc, char* argv[])
 Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medium 1 where the ray is travelling
 {
 
-	// guiei-me por isto https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tracing/ray-tracing-practical-example
-	// pHit -> ponto de intereccao
-	// nHit -> normal de pHit
+	// pHit -> intersection point 
+	// nHit -> normal in pHit
 
 	Object* object = NULL;
 	float minDist = INFINITY;
 
 
-	// VEEEEEER ------------------------------------------------------ !!!!!!!
 	Vector pHit;
 	Vector nHit;
 
@@ -480,13 +478,17 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	Color color;
 
 	// search for intersections -> choose closest object
-	// VEEEEEER ------------------------------------------------------ !!!!!!!
 	for (int k = 0; k < num_objects; ++k) {
-		float dist = distance(&ray.origin, &pHit);
 
-		if (objs[k]->intercepts(ray, minDist) && dist < minDist) {
-			minDist = dist;
-			object = objs[k];
+		if (objs[k]->intercepts(ray, minDist)) {
+			// Calculate point of intersection with ray's parametric formula P=O+tR
+			pHit = ray.origin + ray.direction *= minDist;
+			float dist = distance(&ray.origin, &pHit);
+
+			if (dist < minDist) {
+				minDist = dist;
+				object = objs[k];
+			}
 		}
 	}
 
@@ -499,7 +501,6 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	if (object == NULL) {
 		color = scene->GetBackgroundColor();
 	}
-
 
 	float ks = object->GetMaterial()->GetTransmittance();
 	nHit = object->getNormal(pHit);
@@ -515,21 +516,21 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			// ler todos os objetos da cena e ver se intercepts
 			// se sim -> brake; e está em shadow
 			// se nao -> passa a frente
-			Ray rayAux = Ray(pHit, L);
-			Vector pointAux;
+			Ray rayLight = Ray(pHit, L);
+			Vector originLight = scene->getLight(j)->position;
 
-			// VEEEEEER ------------------------------------------------------ !!!!!!!
 			for (int s = 0; s < num_objects; ++s) {
-				float distAux = distance(&rayAux.origin, &pointAux);
+				float distLight = distance(&rayLight.origin, &originLight);
 
-				if (objs[s]->intercepts(rayAux, distAux) && distAux > minDist) {
-					inShadow = true;
-					break;
+				if (objs[s]->intercepts(rayLight, distLight)) {
+					if (distLight > minDist){
+						inShadow = true;
+						break;
+					}
 				}
 			}
 
 			if (inShadow) {
-
 				Vector I = ray.direction * -1;
 				Vector H = L + I;
 
@@ -547,12 +548,23 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	// object is transparent
 	if (ks != 0 && ks < 1) {
 		// compute refraction ray
+		/*
+			tRay = calculate ray in the refracted direction;
+			tColor = rayTracing(scene, point, tRay direction, depth+1);
+			reduce tColor by the transmittance coefficient and add to color;
+		*/
+
 
 	}
 
 	// object is mirror like
 	else if (ks == 1) {
 		// compute refraction and reflection ray
+		/*
+			rRay = calculate ray in the reflected direction;
+			rColor = rayTracing(scene, point, rRay direction, depth+1);
+			reduce rColor by the specular reflection coefficient and add to color;
+		*/
 
 	}
 
