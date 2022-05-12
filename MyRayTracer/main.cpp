@@ -464,11 +464,14 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	Object* object = NULL;
 	float minDist = INFINITY;
 
+
+	// VEEEEEER ------------------------------------------------------ !!!!!!!
 	Vector pHit;
 	Vector nHit;
 
 	vector<Object*> objs;
 	int num_objects = scene->getNumObjects();
+	int num_lights = scene->getNumLights();
 
 	for (int o = 0; o < num_objects; o++) {
 		objs.push_back(scene->getObject(o));
@@ -477,6 +480,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	Color color;
 
 	// search for intersections -> choose closest object
+	// VEEEEEER ------------------------------------------------------ !!!!!!!
 	for (int k = 0; k < num_objects; ++k) {
 		float dist = distance(&ray.origin, &pHit);
 
@@ -486,28 +490,69 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		}
 	}
 
+
 	// 3 cases: https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-overview/light-transport-ray-tracing-whitted
 	// case1 -> surface is opaque and difusse (default case). Use Phong model to calculate illumination
 	// case2 -> surface is mirror like. Trace another REFLECTION ray at the intersection point
 	// case3 -> surface is transparent. Cast another REFLECTION and REFRACTION ray at the intersection point. 
 
 	if (object == NULL) {
-		color = Color(0.0f, 0.0f, 0.0f);
+		color = scene->GetBackgroundColor();
+	}
+
+
+	float ks = object->GetMaterial()->GetTransmittance();
+	nHit = object->getNormal(pHit);
+	bool inShadow = false;
+
+	for (int j = 0; j < num_lights; j++) {
+		// L vector from point intersection to light source
+		Vector L = scene->getLight(j)->position - pHit;
+	
+		if (L * nHit > 0) {
+			// not in shadow
+			// usar metodo intercepts da sphere com argumentos ray (origin - pHit, direction - L), float -> devolve distancia
+			// ler todos os objetos da cena e ver se intercepts
+			// se sim -> brake; e está em shadow
+			// se nao -> passa a frente
+			Ray rayAux = Ray(pHit, L);
+			Vector pointAux;
+
+			// VEEEEEER ------------------------------------------------------ !!!!!!!
+			for (int s = 0; s < num_objects; ++s) {
+				float distAux = distance(&rayAux.origin, &pointAux);
+
+				if (objs[s]->intercepts(rayAux, distAux) && distAux > minDist) {
+					inShadow = true;
+					break;
+				}
+			}
+
+			if (inShadow) {
+
+				Vector I = ray.direction * -1;
+				Vector H = L + I;
+
+				Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffColor() * (nHit * L);
+				Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecColor() * pow((nHit * H), object->GetMaterial()->GetShine());
+				color = diff + spec;
+			}
+		}
+	}
+
+	if (depth >= MAX_DEPTH) {
+		return color;
 	}
 
 	// object is transparent
-	// not sure do valor a comparar com o refraction index
-	if ((object->GetMaterial()->GetRefrIndex() < 1 || object->GetMaterial()->GetTransmittance() == 1) && depth < MAX_DEPTH) {
-		// compute reflection and refraction ray
+	if (ks != 0 && ks < 1) {
+		// compute refraction ray
 
 	}
 
 	// object is mirror like
-	// ainda nao sei bem como será esta
-	//if ()
-
-	// default -> Blinn-Phong
-	else {
+	else if (ks == 1) {
+		// compute refraction and reflection ray
 
 	}
 
@@ -555,7 +600,7 @@ void renderScene()
 
 			color = rayTracing(ray, 1, 1.0).clamp();
 
-			color = scene->GetBackgroundColor(); //TO CHANGE - just for the template
+			//color = scene->GetBackgroundColor(); //TO CHANGE - just for the template
 
 			img_Data[counter++] = u8fromfloat((float)color.r());
 			img_Data[counter++] = u8fromfloat((float)color.g());
