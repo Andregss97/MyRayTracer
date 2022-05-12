@@ -119,8 +119,16 @@ Plane::Plane(Vector& P0, Vector& P1, Vector& P2)
 
 bool Plane::intercepts( Ray& r, float& t )
 {
+	Vector P = PN.normalize();
+	Vector R0 = r.origin;
+	Vector Rd = r.direction;
+	float Vd = P.dotProduct(Rd);
+	if (Vd == 0) return false;
+	float V0 = -(P.dotProduct(R0) + D);
+	t = V0 / Vd;
+	if (t < 0) return false;
+	return true;
 	//PUT HERE YOUR CODE
-   return (false);
 }
 
 Vector Plane::getNormal(Vector point) 
@@ -134,19 +142,17 @@ bool Sphere::intercepts(Ray& r, float& t )
 	float t0, t1;
 	float radius2 = pow(radius, 2);
 
-	Vector L = r.origin - center;
+	Vector oc = r.origin - center;
 	Vector dir = r.direction;
 	float a = dir.dotProduct(dir);
-	float b = 2 * dir.dotProduct(L);
-	float c = L.dotProduct(L) - radius2;
+	float b = 2 * dir.dotProduct(oc);
+	float c = oc.dotProduct(oc) - radius2;
 	float discr = b * b - 4 * a * c;
 
 	if (discr < 0) return false;
 	else if (discr == 0) t0 = t1 = -0.5 * b / a;
 	else {
-		float q = (b > 0) ?
-			-0.5 * (b + sqrt(discr)) :
-			-0.5 * (b - sqrt(discr));
+		float q = (b > 0) ? -0.5 * (b + sqrt(discr)) : -0.5 * (b - sqrt(discr));
 		t0 = q / a;
 		t1 = c / q;
 	}
