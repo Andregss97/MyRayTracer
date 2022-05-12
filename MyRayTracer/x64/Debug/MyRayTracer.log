@@ -1,12 +1,8 @@
-﻿  main.cpp
-C:\Users\Administrator\MyRayTracer\MyRayTracer\maths.h(69,23): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(42,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(41,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(40,28): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(473,14): warning C4244: 'initializing': conversion from '__int64' to 'float', possible loss of data
-  vector.cpp
-C:\Users\Administrator\MyRayTracer\MyRayTracer\vector.cpp(20,13): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-C:\Users\Administrator\MyRayTracer\MyRayTracer\vector.cpp(68,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  Generating Code...
+﻿  LINK : C:\Users\Administrator\MyRayTracer\x64\Debug\MyRayTracer.exe not found or not built by the last incremental link; performing full link
   MyRayTracer.vcxproj -> C:\Users\Administrator\MyRayTracer\x64\Debug\MyRayTracer.exe
-  0 File(s) copied
+  C:\Users\Administrator\MyRayTracer\MyRayTracer\Dependencies\lib\x64\DevIL.dll
+  C:\Users\Administrator\MyRayTracer\MyRayTracer\Dependencies\lib\x64\freeglut.dll
+  C:\Users\Administrator\MyRayTracer\MyRayTracer\Dependencies\lib\x64\glew32.dll
+  C:\Users\Administrator\MyRayTracer\MyRayTracer\Dependencies\lib\x64\ILU.dll
+  C:\Users\Administrator\MyRayTracer\MyRayTracer\Dependencies\lib\x64\ILUT.dll
+  5 File(s) copied
