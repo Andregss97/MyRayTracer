@@ -555,6 +555,8 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		*/
 
 
+
+
 	}
 
 	// object is mirror like
@@ -565,6 +567,17 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			rColor = rayTracing(scene, point, rRay direction, depth+1);
 			reduce rColor by the specular reflection coefficient and add to color;
 		*/
+
+		//r = 2(V*n)n - V
+		Vector V = ray.direction;
+		Vector Vn = (V*nHit)*nHit; //não sei oq se passa com isto, supostamente é assim
+		Vector h = V - Vn;
+		Vector direcRay = Vn + h;
+		Ray rayReflection = Ray(pHit, direcRay);
+		Color rColor = rayTracing(rayReflection, depth + 1, ior_1);
+
+		//ainda está por confirmar, acho que se tem que aplicar ainda um coeficiente de reflecção mas não sei como
+		color = rColor;
 
 	}
 
