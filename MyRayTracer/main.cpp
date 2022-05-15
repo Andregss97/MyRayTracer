@@ -35,6 +35,7 @@ bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 #define CAPTION "Whitted Ray-Tracer"
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
+#define BIAS 0.00001
 
 unsigned int FrameCount = 0;
 
@@ -74,6 +75,7 @@ GLuint VertexShaderId, FragmentShaderId, ProgramId;
 GLint UniformId;
 
 Scene* scene = NULL;
+
 
 Grid* grid_ptr = NULL;
 BVH* bvh_ptr = NULL;
@@ -454,18 +456,55 @@ void setupGLUT(int argc, char* argv[])
 
 /////////////////////////////////////////////////////YOUR CODE HERE///////////////////////////////////////////////////////////////////////////////////////
 
+
+// Fresnel equation to calculate the amount of light reflected
+// kr -> Ratio of reflected light for a given incident direction (I) and surfance normal (nHit)
+void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
+
+	float cosi = clamp(I * nHit, -1, 1);
+	float etai = 1;				// refraction index of the medium the ray is in before entering the second medium
+	float etat = ior;			// refraction index of the object
+
+	if (cosi > 0) {
+		std::swap(etai, etat);
+	}
+
+	float sint = etai / etat * sqrtf(std::max(0.f, 1 - cosi * cosi));
+
+	// Total internal reflection
+	if (sint >= 1) {
+		kr = 1;
+	}
+
+	else {
+
+		float cost = sqrtf(std::max(0.f, 1 - sint * sint));	
+		cosi = fabsf(cosi);	// absolute value
+
+		// Fresnel equations
+		float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+		float Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+
+		kr = (Rs * Rs + Rp * Rp) / 2;
+	}
+}
+
+
 Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medium 1 where the ray is travelling
 {
 
-	// pHit -> intersection point 
-	// nHit -> normal in pHit
+	if (depth >= MAX_DEPTH) {
+		return scene->GetBackgroundColor();
+	}
+
+	Color color = scene->GetBackgroundColor();
+
+
+	Vector pHit; // intersection point
+	Vector nHit; // normal in pHit
 
 	Object* object = NULL;
 	float minDist = INFINITY;
-
-
-	Vector pHit;
-	Vector nHit;
 
 	vector<Object*> objs;
 	int num_objects = scene->getNumObjects();
@@ -475,7 +514,6 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		objs.push_back(scene->getObject(o));
 	}
 
-	Color color;
 
 	// search for intersections -> choose closest object
 	for (int k = 0; k < num_objects; ++k) {
@@ -492,107 +530,156 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		}
 	}
 
+	if (object != NULL) {
+		float ks = object->GetMaterial()->GetTransmittance();
+		nHit = object->getNormal(pHit);
+		bool inShadow = false;
 
-	// 3 cases: https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-overview/light-transport-ray-tracing-whitted
-	// case1 -> surface is opaque and difusse (default case). Use Phong model to calculate illumination
-	// case2 -> surface is mirror like. Trace another REFLECTION ray at the intersection point
-	// case3 -> surface is transparent. Cast another REFLECTION and REFRACTION ray at the intersection point. 
+		for (int j = 0; j < num_lights; j++) {
+			// L vector from point intersection to light source
+			Vector L = scene->getLight(j)->position - pHit;
 
-	if (object == NULL) {
-		color = scene->GetBackgroundColor();
-	}
+			if (L * nHit > 0) {
+				// not in shadow
+				// usar metodo intercepts da sphere com argumentos ray (origin - pHit, direction - L), float -> devolve distancia
+				// ler todos os objetos da cena e ver se intercepts() da true
+				// se sim -> brake; e está em shadow
+				// se nao -> passa a frente
+				Ray rayLight = Ray(pHit, L);
+				Vector originLight = scene->getLight(j)->position;
 
-	float ks = object->GetMaterial()->GetTransmittance();
-	nHit = object->getNormal(pHit);
-	bool inShadow = false;
+				for (int s = 0; s < num_objects; ++s) {
+					float distLight = distance(&rayLight.origin, &originLight);
 
-	for (int j = 0; j < num_lights; j++) {
-		// L vector from point intersection to light source
-		Vector L = scene->getLight(j)->position - pHit;
-	
-		if (L * nHit > 0) {
-			// not in shadow
-			// usar metodo intercepts da sphere com argumentos ray (origin - pHit, direction - L), float -> devolve distancia
-			// ler todos os objetos da cena e ver se intercepts
-			// se sim -> brake; e está em shadow
-			// se nao -> passa a frente
-			Ray rayLight = Ray(pHit, L);
-			Vector originLight = scene->getLight(j)->position;
-
-			for (int s = 0; s < num_objects; ++s) {
-				float distLight = distance(&rayLight.origin, &originLight);
-
-				if (objs[s]->intercepts(rayLight, distLight)) {
-					if (distLight > minDist){
-						inShadow = true;
-						break;
+					if (objs[s]->intercepts(rayLight, distLight)) {
+						if (distLight > minDist) {
+							inShadow = true;
+							break;
+						}
 					}
 				}
-			}
 
-			if (inShadow) {
-				Vector I = ray.direction * -1;
-				Vector H = L + I;
+				// calculo de cor na sombra
+				if (inShadow) {
+					Vector I = ray.direction * -1;
+					Vector H = L + I;
 
-				Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffColor() * (nHit * L);
-				Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecColor() * pow((nHit * H), object->GetMaterial()->GetShine());
-				color = diff + spec;
+					Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffColor() * (nHit * L);
+					Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecColor() * pow((nHit * H), object->GetMaterial()->GetShine());
+					color = diff + spec;
+				}
 			}
 		}
-	}
 
-	if (depth >= MAX_DEPTH) {
-		return color;
-	}
+		// object is transparent. Compute REFRACTION ray
+		if (ks != 0 && ks < 1) {
 
-	// object is transparent
-	if (ks != 0 && ks < 1) {
-		// compute refraction ray
-		/*
-			tRay = calculate ray in the refracted direction;
-			tColor = rayTracing(scene, point, tRay direction, depth+1);
-			reduce tColor by the transmittance coefficient and add to color;
-		*/
+			Vector V = ray.direction;
+			Vector n = nHit;
+			Vector refractionDir;
+
+			float cosi = clamp(V * nHit, -1, 1);
+
+			float etai = 1;		// refraction index of the medium the ray is in before entering the second medium
+			float etat = ior_1; // refraction index of the object
+			
+			// Ray is inside object
+			if (cosi < 0) {
+				cosi = -cosi;
+			}
+			// Ray is outside object
+			else {
+				std::swap(etai, etat);
+				n = nHit * -1;
+			}
+
+			float eta = etai / etat; // Snells Law: n_1 / n_2
+
+			// Compute wether incident light is completelly reflected rather than refracted
+			float k = 1 - eta * eta * (1 - cosi * cosi);
+
+			// total internal reflection. There is no refraction
+			if (k < 0) {
+				refractionDir = Vector(0,0,0).normalize();
+			}
+			else {
+				refractionDir = (V*eta + nHit*(eta * cosi - sqrtf(k))).normalize();
+			}
+
+			Vector refractionOrigin;
+
+			// avoid acne effect
+			if (nHit * refractionDir < 0) {
+				refractionOrigin = pHit - nHit * BIAS;
+			}
+			else {
+				refractionOrigin = pHit + nHit * BIAS;
+			}
+
+			Ray rayRefraction = Ray(refractionOrigin, refractionDir);
+			Color refractionColor = rayTracing(rayRefraction, depth + 1, ior_1);
+
+			float kRefraction; // refraction coefficient
+			fresnel(V, nHit, ior_1, kRefraction);
+			color += refractionColor * (1 - kRefraction);
+
+		}
+
+		// object is reflective like. Compute REFLECTION ray
+		if (ks == 1) {
+
+			// reflect direction : (V - 2*(V*N)*N).normalize
+
+			Vector V = ray.direction;
+			Vector reflectionDir = (V-((nHit*(nHit * V))*2)).normalize();
+			Vector reflectionOrigin;
+
+			// avoid acne efffect
+			if (reflectionDir * nHit < 0) {
+				reflectionOrigin = pHit - nHit * BIAS;
+			} 
+			else {
+				reflectionOrigin = pHit + nHit * BIAS;
+			}
+
+			Ray rayReflection = Ray(reflectionOrigin, reflectionDir);
+			Color reflectionColor = rayTracing(rayReflection, depth + 1, ior_1);
 
 
+			float kReflection; // reflection coefficient
+
+			// ior_1 TEM DE SER MUDADO. DEPENDE DO OBJETO QUE FOI ATINIGIDO ??
+			fresnel(V, nHit, ior_1, kReflection);
+			color += reflectionColor * kReflection;
 
 
-	}
+			/*
+			r = 2(V * n)n - V
+			Vector V = ray.direction;
+			Vector Vn = (V*nHit)*nHit; //não sei oq se passa com isto, supostamente é assim
+			Vector h = V - Vn;
+			Vector direcRay = Vn + h;
+			Ray rayReflection = Ray(pHit, direcRay);
+			Color rColor = rayTracing(rayReflection, depth + 1, ior_1);
 
-	// object is mirror like
-	else if (ks == 1) {
-		// compute refraction and reflection ray
-		/*
-			rRay = calculate ray in the reflected direction;
-			rColor = rayTracing(scene, point, rRay direction, depth+1);
-			reduce rColor by the specular reflection coefficient and add to color;
-		*/
-
-		//r = 2(V*n)n - V
-		Vector V = ray.direction;
-		Vector Vn = (V*nHit)*nHit; //não sei oq se passa com isto, supostamente é assim
-		Vector h = V - Vn;
-		Vector direcRay = Vn + h;
-		Ray rayReflection = Ray(pHit, direcRay);
-		Color rColor = rayTracing(rayReflection, depth + 1, ior_1);
-
-		//ainda está por confirmar, acho que se tem que aplicar ainda um coeficiente de reflecção mas não sei como
-		color = rColor;
-
+			//ainda está por confirmar, acho que se tem que aplicar ainda um coeficiente de reflecção mas não sei como
+			color = rColor;
+			*/
+		}
 	}
 
 	return color;
 
-	//INSERT HERE YOUR CODE
-	/*unsigned int index;
+	/*INSERT HERE YOUR CODE
+	unsigned int index;
 
 	float cosI = I * N;
 	bool outside = cosI > 0;
 	float ks = hitObj->GetMaterial()->GetSpecular();
 	float Nl;
 
-	for (int = l = 0; */
-	//return Color(0.0f, 0.0f, 0.0f);
+	for (int = l = 0; 
+	return Color(0.0f, 0.0f, 0.0f); */
 }
 
 

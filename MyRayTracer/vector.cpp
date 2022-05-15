@@ -98,18 +98,3 @@ Vector Vector::operator%( const Vector& v)
 
 	return Vector( sX, sY, sZ );
 }
-
-Vector& Vector::crossProduct(const Vector& v) {
-	float cross_x = y * v.z - z * v.y;
-	float cross_y = z * v.x - x * v.z;
-	float cross_z = x * v.y - y * v.x;
-	return Vector(cross_x, cross_y, cross_z);
-}
-
-float Vector::dotProduct(const Vector& v) {
-	float dot_x = x * v.x;
-	float dot_y = y * v.y;
-	float dot_z = z * v.z;
-
-	return dot_x + dot_y + dot_z;
-}

@@ -7,14 +7,6 @@
 #include "macros.h"
 
 
-
-// acho que isto pode ajudar com as interceptions! 
-// https://www.scratchapixel.com/code.php?id=8&origin=/lessons/3d-basic-rendering/ray-tracing-overview
-
-
-
-
-
 Triangle::Triangle(Vector& P0, Vector& P1, Vector& P2)
 {
 	points[0] = P0; points[1] = P1; points[2] = P2;
@@ -57,9 +49,9 @@ bool Triangle::intercepts(Ray& r, float& t ) {
 
 	Vector rayVector = r.direction;
 
-	h = rayVector.crossProduct(edge2);
+	h = rayVector%edge2;
 
-	a = edge1.dotProduct(h);
+	a = edge1*h;
 
 	if (a > -EPSILON && a < EPSILON)
 		return false;    // This ray is parallel to this triangle.
@@ -69,19 +61,19 @@ bool Triangle::intercepts(Ray& r, float& t ) {
 
 	s = rayOrigin - vertex0;
 
-	u = f * s.dotProduct(h);
+	u = f * (s*h);
 
 	if (u < 0.0 || u > 1.0)
 		return false;
 
-	q = s.crossProduct(edge1);
+	q = s%edge1;
 
-	v = f * rayVector.dotProduct(q);
+	v = f * (rayVector*q);
 
 	if (v < 0.0 || u + v > 1.0)
 		return false;
 	// At this stage we can compute t to find out where the intersection point is on the line.
-	t = f * edge2.dotProduct(q);
+	t = f * (edge2*q);
 	if (t > EPSILON) // ray intersection
 	{
 		return true;
@@ -122,9 +114,9 @@ bool Plane::intercepts( Ray& r, float& t )
 	Vector P = PN.normalize();
 	Vector R0 = r.origin;
 	Vector Rd = r.direction;
-	float Vd = P.dotProduct(Rd);
+	float Vd = P*Rd;
 	if (Vd == 0) return false;
-	float V0 = -(P.dotProduct(R0) + D);
+	float V0 = -(P*R0 + D);
 	t = V0 / Vd;
 	if (t < 0) return false;
 	return true;
@@ -144,9 +136,9 @@ bool Sphere::intercepts(Ray& r, float& t )
 
 	Vector oc = r.origin - center;
 	Vector dir = r.direction;
-	float a = dir.dotProduct(dir);
-	float b = 2 * dir.dotProduct(oc);
-	float c = oc.dotProduct(oc) - radius2;
+	float a = dir*dir;
+	float b = 2 * (dir*oc);
+	float c = (oc*oc) - radius2;
 	float discr = b * b - 4 * a * c;
 
 	if (discr < 0) return false;
