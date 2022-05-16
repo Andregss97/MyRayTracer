@@ -35,7 +35,6 @@ bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 #define CAPTION "Whitted Ray-Tracer"
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
-#define BIAS 0.00001
 
 unsigned int FrameCount = 0;
 
@@ -610,10 +609,10 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 
 			// avoid acne effect
 			if (nHit * refractionDir < 0) {
-				refractionOrigin = pHit - nHit * BIAS;
+				refractionOrigin = pHit - nHit * EPSILON;
 			}
 			else {
-				refractionOrigin = pHit + nHit * BIAS;
+				refractionOrigin = pHit + nHit * EPSILON;
 			}
 
 			Ray rayRefraction = Ray(refractionOrigin, refractionDir);
@@ -636,10 +635,10 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 
 			// avoid acne efffect
 			if (reflectionDir * nHit < 0) {
-				reflectionOrigin = pHit - nHit * BIAS;
+				reflectionOrigin = pHit - nHit * EPSILON;
 			} 
 			else {
-				reflectionOrigin = pHit + nHit * BIAS;
+				reflectionOrigin = pHit + nHit * EPSILON;
 			}
 
 			Ray rayReflection = Ray(reflectionOrigin, reflectionDir);
@@ -652,34 +651,11 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			fresnel(V, nHit, ior_1, kReflection);
 			color += reflectionColor * kReflection;
 
-
-			/*
-			r = 2(V * n)n - V
-			Vector V = ray.direction;
-			Vector Vn = (V*nHit)*nHit; //não sei oq se passa com isto, supostamente é assim
-			Vector h = V - Vn;
-			Vector direcRay = Vn + h;
-			Ray rayReflection = Ray(pHit, direcRay);
-			Color rColor = rayTracing(rayReflection, depth + 1, ior_1);
-
-			//ainda está por confirmar, acho que se tem que aplicar ainda um coeficiente de reflecção mas não sei como
-			color = rColor;
-			*/
 		}
 	}
 
 	return color;
 
-	/*INSERT HERE YOUR CODE
-	unsigned int index;
-
-	float cosI = I * N;
-	bool outside = cosI > 0;
-	float ks = hitObj->GetMaterial()->GetSpecular();
-	float Nl;
-
-	for (int = l = 0; 
-	return Color(0.0f, 0.0f, 0.0f); */
 }
 
 
