@@ -496,47 +496,42 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		return scene->GetBackgroundColor();
 	}
 
-	Color color = scene->GetBackgroundColor();
+	Color color;
 
 
 	Vector pHit; // intersection point
 	Vector nHit; // normal in pHit
 
 	Object* object = NULL;
-	float minDist = INFINITY;
+	float minDist = FLT_MAX;
+	float t;
 
-	vector<Object*> objs;
 	int num_objects = scene->getNumObjects();
 	int num_lights = scene->getNumLights();
-
-	for (int o = 0; o < num_objects; o++) {
-		objs.push_back(scene->getObject(o));
-	}
 
 
 	// search for intersections -> choose closest object
 	for (int k = 0; k < num_objects; ++k) {
+		Object *obj = scene->getObject(k);
+		if (obj->intercepts(ray, t)) {
 
-		if (objs[k]->intercepts(ray, minDist)) {
-			// Calculate point of intersection with ray's parametric formula P=O+tR
-			pHit = ray.origin + ray.direction *= minDist;
-			float dist = distance(&ray.origin, &pHit);
-
-			if (dist < minDist) {
-				minDist = dist;
-				object = objs[k];
+			if (t < minDist) {
+				minDist = t;
+				object = scene->getObject(k);
 			}
 		}
 	}
 
 	if (object != NULL) {
-		float ks = object->GetMaterial()->GetTransmittance();
+		pHit = ray.origin + ray.direction * minDist;
+		float transmitanceFlag = object->GetMaterial()->GetTransmittance();
 		nHit = object->getNormal(pHit);
 		bool inShadow = false;
 
-		for (int j = 0; j < num_lights; j++) {
-			// L vector from point intersection to light source
+		for (int j = 0; j < num_lights; ++j) {
+			// L vector: from point intersection to light source
 			Vector L = scene->getLight(j)->position - pHit;
+			float length = L.length();
 
 			if (L * nHit > 0) {
 				// not in shadow
@@ -544,34 +539,37 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 				// ler todos os objetos da cena e ver se intercepts() da true
 				// se sim -> brake; e está em shadow
 				// se nao -> passa a frente
-				Ray rayLight = Ray(pHit, L);
+				Ray rayLight = Ray(pHit, L.normalize());
 				Vector originLight = scene->getLight(j)->position;
 
-				for (int s = 0; s < num_objects; ++s) {
-					float distLight = distance(&rayLight.origin, &originLight);
 
-					if (objs[s]->intercepts(rayLight, distLight)) {
+				for (int s = 0; s < num_objects; ++s) {
+					float distLight = sqrt(pow(originLight.x - rayLight.origin.x, 2) + pow(originLight.y - rayLight.origin.y, 2) + pow(originLight.z - rayLight.origin.z, 2) * 1.0);
+
+					if (scene->getObject(s)->intercepts(rayLight, length)) {
 						if (distLight > minDist) {
 							inShadow = true;
 							break;
 						}
 					}
 				}
+			}
 
-				// calculo de cor na sombra
-				if (inShadow) {
-					Vector I = ray.direction * -1;
-					Vector H = L + I;
+			// calculo de cor na sombra
+			if (!inShadow) {
+				Vector I = ray.direction * -1;
+				Vector H = (L.normalize() + I).normalize();
 
-					Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffColor() * (nHit * L);
-					Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecColor() * pow((nHit * H), object->GetMaterial()->GetShine());
-					color = diff + spec;
-				}
+				Color diff = scene->getLight(0)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * L), 0.0f);
+				Color spec = scene->getLight(0)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
+				color = diff + spec;
 			}
 		}
+		return color;
 
+		
 		// object is transparent. Compute REFRACTION ray
-		if (ks != 0 && ks < 1) {
+		if (transmitanceFlag != 0 && transmitanceFlag < 1) {
 
 			Vector V = ray.direction;
 			Vector n = nHit;
@@ -625,7 +623,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		}
 
 		// object is reflective like. Compute REFLECTION ray
-		if (ks == 1) {
+		if (transmitanceFlag == 1) {
 
 			// reflect direction : (V - 2*(V*N)*N).normalize
 
@@ -650,11 +648,15 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			// ior_1 TEM DE SER MUDADO. DEPENDE DO OBJETO QUE FOI ATINIGIDO ??
 			fresnel(V, nHit, ior_1, kReflection);
 			color += reflectionColor * kReflection;
-
+	
 		}
 	}
 
-	return color;
+	else {
+		return scene->GetBackgroundColor();
+	}
+
+	//return color;
 
 }
 
@@ -673,6 +675,7 @@ void renderScene()
 		scene->GetCamera()->SetEye(Vector(camX, camY, camZ));  //Camera motion
 	}
 
+	//printf("Num_objects: %d\n", scene->getNumObjects());
 	for (int y = 0; y < RES_Y; y++)
 	{
 		for (int x = 0; x < RES_X; x++)

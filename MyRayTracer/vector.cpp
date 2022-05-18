@@ -16,10 +16,6 @@ float Vector::getAxisValue(int axis) {
 	return (axis == 0) ? x : (axis == 1) ? y : z;
 }
 
-float Vector::distance(const Vector& v, const Vector& w) {
-	return sqrt(pow(w.x - v.x, 2) + pow(w.y - v.y, 2) * 1.0);
-}
-
 // --------------------------------------------------------------------- copy constructor
 Vector::Vector(const Vector& v)
 {

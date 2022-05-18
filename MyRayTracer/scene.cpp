@@ -39,6 +39,8 @@ Vector Triangle::getNormal(Vector point)
 //
 
 bool Triangle::intercepts(Ray& r, float& t ) {
+
+	printf("INTERCEPTS TRIANGLE\n");
 	Vector vertex0 = points[0];
 	Vector vertex1 = points[1];
 	Vector vertex2 = points[2];
@@ -111,6 +113,8 @@ Plane::Plane(Vector& P0, Vector& P1, Vector& P2)
 
 bool Plane::intercepts( Ray& r, float& t )
 {
+
+	//printf("INTERCEPTS PLANE\n");
 	Vector P = PN.normalize();
 	Vector R0 = r.origin;
 	Vector Rd = r.direction;
@@ -131,17 +135,56 @@ Vector Plane::getNormal(Vector point)
 
 bool Sphere::intercepts(Ray& r, float& t )
 {
+	Vector oc = center - r.origin;
+	float b = r.direction * oc;
+	float c = (oc * oc) - SqRadius;
+
+	// ray origin outside sphere
+	if (c > 0.0f) {
+		// sphere is behind ray
+		if (b < 0.0f) {
+			//printf("aqui1");
+			return false;
+		}
+	}
+
+	float discriminant = (b * b) - c;
+
+	if (discriminant <= 0.0f) {
+		//printf("aqui2");
+		return false;
+	}
+
+	// ray origin outside sphere but in front of ray
+	// calculate smallest root
+	if (c > 0.0f) {
+		t = b - sqrtf(discriminant);
+	}
+	// calculate positive root
+	else {
+		t = b + sqrtf(discriminant);
+	}
+
+
+	//printf("INTERCEPTS SPHERE\n");
+	//printf("distance t: %f\n", t);
+	return (t>0)?true: false;
+
+
+	/*
 	float t0, t1;
-	float radius2 = pow(radius, 2);
+	//float radius2 = pow(radius, 2);
 
 	Vector oc = r.origin - center;
 	Vector dir = r.direction;
 	float a = dir*dir;
 	float b = 2 * (dir*oc);
-	float c = (oc*oc) - radius2;
-	float discr = b * b - 4 * a * c;
+	float c = (oc*oc) - SqRadius;
+	float discr = (b * b) - (4 * a * c);
 
-	if (discr < 0) return false;
+	if (discr < 0) {
+		return false;
+	}
 	else if (discr == 0) t0 = t1 = -0.5 * b / a;
 	else {
 		float q = (b > 0) ? -0.5 * (b + sqrt(discr)) : -0.5 * (b - sqrt(discr));
@@ -156,8 +199,8 @@ bool Sphere::intercepts(Ray& r, float& t )
 	}
 
 	t = t0;
-
 	return true;
+	*/
 }
 
 
@@ -187,6 +230,8 @@ AABB aaBox::GetBoundingBox() {
 
 bool aaBox::intercepts(Ray& ray, float& t)
 {
+
+	printf("INTERCEPTS AABOX\n");
 	//PUT HERE YOUR CODE
 		return (false);
 }

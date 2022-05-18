@@ -82,8 +82,8 @@ public:
 
 		// transform vector to world coordinates
 		Vector vX = u * ps.x;
-		Vector vY = u * ps.y;
-		Vector vZ = u * ps.z;
+		Vector vY = v * ps.y;
+		Vector vZ = n * ps.z;
 
 		// normalized ray direction using vector
 		Vector ray_dir = (vX + vY + vZ).normalize();	
