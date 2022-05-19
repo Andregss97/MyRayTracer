@@ -40,7 +40,6 @@ Vector Triangle::getNormal(Vector point)
 
 bool Triangle::intercepts(Ray& r, float& t ) {
 
-	printf("INTERCEPTS TRIANGLE\n");
 	Vector vertex0 = points[0];
 	Vector vertex1 = points[1];
 	Vector vertex2 = points[2];
@@ -113,23 +112,27 @@ Plane::Plane(Vector& P0, Vector& P1, Vector& P2)
 
 bool Plane::intercepts( Ray& r, float& t )
 {
-
-	//printf("INTERCEPTS PLANE\n");
 	Vector P = PN.normalize();
 	Vector R0 = r.origin;
 	Vector Rd = r.direction;
 	float Vd = P*Rd;
-	if (Vd == 0) return false;
+
+	if (Vd == 0) 
+		return false;
+
 	float V0 = -(P*R0 + D);
 	t = V0 / Vd;
-	if (t < 0) return false;
+
+	if (t < 0) 
+		return false;
+
 	return true;
 	//PUT HERE YOUR CODE
 }
 
 Vector Plane::getNormal(Vector point) 
 {
-  return PN;
+	return PN;
 }
 
 
@@ -143,7 +146,6 @@ bool Sphere::intercepts(Ray& r, float& t )
 	if (c > 0.0f) {
 		// sphere is behind ray
 		if (b <= 0.0f) {
-			//printf("aqui1");
 			return false;
 		}
 	}
@@ -151,7 +153,6 @@ bool Sphere::intercepts(Ray& r, float& t )
 	float discriminant = (b * b) - c;
 
 	if (discriminant <= 0.0f) {
-		//printf("aqui2");
 		return false;
 	}
 
@@ -165,42 +166,8 @@ bool Sphere::intercepts(Ray& r, float& t )
 		t = b + sqrtf(discriminant);
 	}
 
+	return ((t>0) ? true: false);
 
-	//printf("INTERCEPTS SPHERE\n");
-	//printf("distance t: %f\n", t);
-	return (t>0)?true: false;
-
-
-	/*
-	float t0, t1;
-	//float radius2 = pow(radius, 2);
-
-	Vector oc = r.origin - center;
-	Vector dir = r.direction;
-	float a = dir*dir;
-	float b = 2 * (dir*oc);
-	float c = (oc*oc) - SqRadius;
-	float discr = (b * b) - (4 * a * c);
-
-	if (discr < 0) {
-		return false;
-	}
-	else if (discr == 0) t0 = t1 = -0.5 * b / a;
-	else {
-		float q = (b > 0) ? -0.5 * (b + sqrt(discr)) : -0.5 * (b - sqrt(discr));
-		t0 = q / a;
-		t1 = c / q;
-	}
-	if (t0 > t1) std::swap(t0, t1);
-
-	if (t0 < 0) {
-		t0 = t1; // if t0 is negative, let's use t1 instead 
-		if (t0 < 0) return false; // both t0 and t1 are negative 
-	}
-
-	t = t0;
-	return true;
-	*/
 }
 
 

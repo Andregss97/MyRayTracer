@@ -492,7 +492,7 @@ void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
 Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medium 1 where the ray is travelling
 {
 
-	Color color;
+	Color color = Color (0.0f,0.0f, 0.0f) ;
 
 
 	Vector pHit; // intersection point
@@ -561,7 +561,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 
 				Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * L), 0.0f);
 				Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
-				color = diff + spec;
+				color += diff + spec;
 			}
 		}
 
@@ -623,8 +623,6 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			color += refractionColor * (1 - kRefraction);
 
 		}
-
-
 		
 		// object is reflective like. Compute REFLECTION ray
 		if (transmitanceFlag == 1) {
@@ -661,8 +659,6 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	else {
 		return scene->GetBackgroundColor();
 	}
-
-	//return color;
 
 }
 
