@@ -476,7 +476,6 @@ void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
 	}
 
 	else {
-
 		float cost = sqrtf(std::max(0.f, 1 - sint * sint));	
 		cosi = fabsf(cosi);	// absolute value
 
@@ -523,7 +522,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		pHit = ray.origin + ray.direction * minDist;
 		
 		float transmitanceFlag = object->GetMaterial()->GetTransmittance();
-		float ReflectiveFlag = object->GetMaterial()->GetReflection();
+		float reflectiveFlag = object->GetMaterial()->GetReflection();
 
 		nHit = object->getNormal(pHit);
 
@@ -552,6 +551,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			float tNear = INFINITY;
 			int index;
 
+			// Ray hits from outside of object
 			if (cosI > 0) {
 
 				// check if object is in shadow or not
@@ -581,12 +581,13 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			return scene->GetBackgroundColor();
 		}
 
-		/*
+
+		Vector V = ray.direction * -1;
 		// object is transparent. Compute REFRACTION ray
 		if (transmitanceFlag != 0) {
 
-			Vector V = ray.direction;
 			Vector refractionDir;
+			Vector nAux;
 
 			float cosi = clamp(V * nHit, -1, 1);
 
@@ -600,7 +601,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			// Ray is outside object
 			else {
 				std::swap(etai, etat);
-				nHit = nHit * -1;
+				nAux = nHit * -1;
 			}
 
 			float eta = etai / etat; // Snells Law: n_1 / n_2
@@ -619,30 +620,33 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			Vector refractionOrigin;
 
 			// avoid acne effect
-			if (nHit * refractionDir < 0) {
-				refractionOrigin = pHit - nHit * EPSILON;
+			if (nAux * refractionDir < 0) {
+				refractionOrigin = pHit - nAux * EPSILON;
 			}
+
 			else {
-				refractionOrigin = pHit + nHit * EPSILON;
+				refractionOrigin = pHit + nAux * EPSILON;
 			}
 
 			Ray rayRefraction = Ray(refractionOrigin, refractionDir);
 			Color refractionColor = rayTracing(rayRefraction, depth + 1, ior_1);
 
-			float kRefraction; // refraction coefficient
-			fresnel(V, nHit, ior_1, kRefraction);
-			color += refractionColor * (1 - kRefraction);
+			float kReflection; // refraction coefficient
+			fresnel(V, nHit, ior_1, kReflection);
+			color += refractionColor * (1 - kReflection);
 
 		}
 		
 		/*
 		// object is reflective like. Compute REFLECTION ray
 		if (reflectiveFlag > 0) {
+			float kReflection; // reflection coefficient
 
-			// reflect direction : (V - 2*(V*N)*N).normalize
+			fresnel(V, nHit, ior_1, kReflection);
+			//printf("kReflection: %f\n", kReflection);
 
-			Vector V = ray.direction;
-			Vector reflectionDir = (V-((nHit*(nHit * V))*2)).normalize();
+
+			Vector reflectionDir = nHit*2*(V*nHit)-V;
 			Vector reflectionOrigin;
 
 			// avoid acne efffect
@@ -657,14 +661,9 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			Color reflectionColor = rayTracing(rayReflection, depth + 1, ior_1);
 
 
-			float kReflection; // reflection coefficient
-
-			// ior_1 TEM DE SER MUDADO. DEPENDE DO OBJETO QUE FOI ATINIGIDO ??
-			fresnel(V, nHit, ior_1, kReflection);
 			color += reflectionColor * kReflection;
 	
-		}
-		*/
+		}*/
 		return color;
 	}
 
