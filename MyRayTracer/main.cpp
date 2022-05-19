@@ -492,7 +492,7 @@ void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
 Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medium 1 where the ray is travelling
 {
 
-	Color color = Color (0.0f,0.0f, 0.0f) ;
+	Color color;
 
 
 	Vector pHit; // intersection point
@@ -518,6 +518,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		}
 	}
 
+	// If there was an object that collided with the ray
 	if (object != NULL) {
 		pHit = ray.origin + ray.direction * minDist;
 		float transmitanceFlag = object->GetMaterial()->GetTransmittance();

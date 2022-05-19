@@ -12,7 +12,12 @@ Triangle::Triangle(Vector& P0, Vector& P1, Vector& P2)
 	points[0] = P0; points[1] = P1; points[2] = P2;
 
 	/* Calculate the normal */
+	Vector a = P0;
+	Vector b = P1;
+	Vector c = P2;
+
 	normal = Vector(0, 0, 0);
+	normal = (b - a) % (c - a);
 	normal.normalize();
 
 	//YOUR CODE to Calculate the Min and Max for bounding box
@@ -40,41 +45,53 @@ Vector Triangle::getNormal(Vector point)
 
 bool Triangle::intercepts(Ray& r, float& t ) {
 
+	//Define Vertex of Triangles
 	Vector vertex0 = points[0];
 	Vector vertex1 = points[1];
 	Vector vertex2 = points[2];
+
+	//Define variables
 	Vector edge1, edge2, h, s, q;
 	float a, f, u, v;
+
+	//Define edges, edge1 = b - a and edge2 = c - a .
+	// B - A
 	edge1 = vertex1 - vertex0;
+	// C - A
 	edge2 = vertex2 - vertex0;
 
 	Vector rayVector = r.direction;
+	Vector rayOrigin = r.origin;
 
-	h = rayVector%edge2;
+	// D X (C - A)
+	h = rayVector % edge2;
 
-	a = edge1*h;
+	// (B - A) * (D X (C-A)
+	a = edge1 * h;
 
 	if (a > -EPSILON && a < EPSILON)
 		return false;    // This ray is parallel to this triangle.
 	f = 1.0 / a;
 
-	Vector rayOrigin = r.origin;
-
+	//O - A
 	s = rayOrigin - vertex0;
 
-	u = f * (s*h);
+	u = f * (s * h);
 
 	if (u < 0.0 || u > 1.0)
 		return false;
 
-	q = s%edge1;
+	q = s % edge1;
 
-	v = f * (rayVector*q);
+	v = f * (rayVector * q);
+
 
 	if (v < 0.0 || u + v > 1.0)
 		return false;
+
 	// At this stage we can compute t to find out where the intersection point is on the line.
-	t = f * (edge2*q);
+	t = f * (edge2 * q);
+
 	if (t > EPSILON) // ray intersection
 	{
 		return true;
@@ -89,21 +106,17 @@ Plane::Plane(Vector& a_PN, float a_D)
 
 Plane::Plane(Vector& P0, Vector& P1, Vector& P2)
 {
-   float l;
+	float l;
 
-   //Calculate the normal plane: counter-clockwise vectorial product.
-   PN = Vector(0, 0, 0);		
-
-   if ((l=PN.length()) == 0.0)
-   {
-     cerr << "DEGENERATED PLANE!\n";
-   }
-   else
-   {
-     PN.normalize();
-	 //Calculate D
-     D  = 0.0f;
-   }
+	//Calculate the normal plane: counter-clockwise vectorial product.
+	PN = (P2 - P1) % (P0 - P1);
+	if ((l = PN.length()) == 0.0){
+		cerr << "DEGENERATED PLANE!\n";
+	}
+	else{
+		PN.normalize();
+		D = -1 * (PN * P0);
+	}
 }
 
 //
@@ -112,22 +125,18 @@ Plane::Plane(Vector& P0, Vector& P1, Vector& P2)
 
 bool Plane::intercepts( Ray& r, float& t )
 {
-	Vector P = PN.normalize();
-	Vector R0 = r.origin;
-	Vector Rd = r.direction;
-	float Vd = P*Rd;
+	Vector N = PN;
+	Vector rayOrigin = r.origin;
+	Vector rayDirection = r.direction;
+	Vector P0;
 
-	if (Vd == 0) 
-		return false;
+	if ((PN.length()) == 0.0) cerr << "DEGENERATED PLANE!\n";
+	if ((PN * rayDirection) == 0) return false;
 
-	float V0 = -(P*R0 + D);
-	t = V0 / Vd;
+	t = -(rayOrigin * N + D) / (PN * rayDirection);
 
-	if (t < 0) 
-		return false;
-
+	if (t < 0) return false;
 	return true;
-	//PUT HERE YOUR CODE
 }
 
 Vector Plane::getNormal(Vector point) 
@@ -138,35 +147,32 @@ Vector Plane::getNormal(Vector point)
 
 bool Sphere::intercepts(Ray& r, float& t )
 {
-	Vector oc = center - r.origin;
-	float b = r.direction * oc;
-	float c = (oc * oc) - SqRadius;
+	Vector dir = r.direction;
+	Vector origin = r.origin;
+	Vector OC = center - origin;
 
-	// ray origin outside sphere
+	float b = dir * OC;
+	float c = OC * OC - SqRadius;
+
 	if (c > 0.0f) {
-		// sphere is behind ray
 		if (b <= 0.0f) {
 			return false;
 		}
 	}
 
-	float discriminant = (b * b) - c;
+	float discr = sqrt(b * b - c);
 
-	if (discriminant <= 0.0f) {
+	if (discr <= 0.0f) {
 		return false;
 	}
 
-	// ray origin outside sphere but in front of ray
-	// calculate smallest root
 	if (c > 0.0f) {
-		t = b - sqrtf(discriminant);
+		t = b - discr;
 	}
-	// calculate positive root
 	else {
-		t = b + sqrtf(discriminant);
+		t = b + discr;
 	}
-
-	return ((t>0) ? true: false);
+	return true;
 
 }
 
