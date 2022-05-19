@@ -521,7 +521,10 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	// If there was an object that collided with the ray
 	if (object != NULL) {
 		pHit = ray.origin + ray.direction * minDist;
+		
 		float transmitanceFlag = object->GetMaterial()->GetTransmittance();
+		float ReflectiveFlag = object->GetMaterial()->GetReflection();
+
 		nHit = object->getNormal(pHit);
 		bool inShadow = false;
 
@@ -570,9 +573,9 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			return scene->GetBackgroundColor();
 		}
 
-		/*
+		
 		// object is transparent. Compute REFRACTION ray
-		if (transmitanceFlag != 0 && transmitanceFlag < 1) {
+		if (transmitanceFlag != 0) {
 
 			Vector V = ray.direction;
 			Vector n = nHit;
@@ -625,8 +628,9 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 
 		}
 		
+		/*
 		// object is reflective like. Compute REFLECTION ray
-		if (transmitanceFlag == 1) {
+		if (reflectiveFlag > 0) {
 
 			// reflect direction : (V - 2*(V*N)*N).normalize
 
