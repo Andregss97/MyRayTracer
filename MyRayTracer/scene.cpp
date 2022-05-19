@@ -142,7 +142,7 @@ bool Sphere::intercepts(Ray& r, float& t )
 	// ray origin outside sphere
 	if (c > 0.0f) {
 		// sphere is behind ray
-		if (b < 0.0f) {
+		if (b <= 0.0f) {
 			//printf("aqui1");
 			return false;
 		}

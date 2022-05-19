@@ -492,10 +492,6 @@ void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
 Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medium 1 where the ray is travelling
 {
 
-	if (depth >= MAX_DEPTH) {
-		return scene->GetBackgroundColor();
-	}
-
 	Color color;
 
 
@@ -511,7 +507,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 
 
 	// search for intersections -> choose closest object
-	for (int k = 0; k < num_objects; ++k) {
+	for (int k = 0; k < num_objects; k++) {
 		Object *obj = scene->getObject(k);
 		if (obj->intercepts(ray, t)) {
 
@@ -528,26 +524,29 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		nHit = object->getNormal(pHit);
 		bool inShadow = false;
 
-		for (int j = 0; j < num_lights; ++j) {
+		for (int j = 0; j < num_lights; j++) {
 			// L vector: from point intersection to light source
 			Vector L = scene->getLight(j)->position - pHit;
 			float length = L.length();
 
+			// avoid acne effect
+			Vector shadowPointOrigin = (ray.direction * nHit < 0) ?
+				pHit + nHit * EPSILON :
+				pHit - nHit * EPSILON;
+
 			if (L * nHit > 0) {
 				// not in shadow
-				// usar metodo intercepts da sphere com argumentos ray (origin - pHit, direction - L), float -> devolve distancia
+				// usar metodo intercepts da sphere com argumentos ray (origin : pHit, direction : L.nomrmalized()) e float -> devolve distancia
 				// ler todos os objetos da cena e ver se intercepts() da true
 				// se sim -> brake; e está em shadow
 				// se nao -> passa a frente
-				Ray rayLight = Ray(pHit, L.normalize());
+				Ray rayLight = Ray(shadowPointOrigin, L.normalize());
 				Vector originLight = scene->getLight(j)->position;
-
+				float distLight;
 
 				for (int s = 0; s < num_objects; ++s) {
-					float distLight = sqrt(pow(originLight.x - rayLight.origin.x, 2) + pow(originLight.y - rayLight.origin.y, 2) + pow(originLight.z - rayLight.origin.z, 2) * 1.0);
-
-					if (scene->getObject(s)->intercepts(rayLight, length)) {
-						if (distLight > minDist) {
+					if (scene->getObject(s)->intercepts(rayLight, distLight)) {
+						if (length > distLight) {
 							inShadow = true;
 							break;
 						}
@@ -555,19 +554,22 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 				}
 			}
 
-			// calculo de cor na sombra
+			// calculo de cor Phong model - direct illumination
 			if (!inShadow) {
 				Vector I = ray.direction * -1;
 				Vector H = (L.normalize() + I).normalize();
 
-				Color diff = scene->getLight(0)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * L), 0.0f);
-				Color spec = scene->getLight(0)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
+				Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * L), 0.0f);
+				Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
 				color = diff + spec;
 			}
 		}
-		return color;
 
-		
+		if (depth >= MAX_DEPTH) {
+			return scene->GetBackgroundColor();
+		}
+
+		/*
 		// object is transparent. Compute REFRACTION ray
 		if (transmitanceFlag != 0 && transmitanceFlag < 1) {
 
@@ -622,6 +624,8 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 
 		}
 
+
+		
 		// object is reflective like. Compute REFLECTION ray
 		if (transmitanceFlag == 1) {
 
@@ -650,6 +654,8 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			color += reflectionColor * kReflection;
 	
 		}
+		*/
+		return color;
 	}
 
 	else {
