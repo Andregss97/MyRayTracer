@@ -526,59 +526,66 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		float ReflectiveFlag = object->GetMaterial()->GetReflection();
 
 		nHit = object->getNormal(pHit);
-		bool inShadow = false;
 
 		for (int j = 0; j < num_lights; j++) {
 			// L vector: from point intersection to light source
 			Vector L = scene->getLight(j)->position - pHit;
 			float length = L.length();
 
+			Vector Lnormal = L;
+			Lnormal = Lnormal.normalize();
+
 			// avoid acne effect
-			Vector shadowPointOrigin = (ray.direction * nHit < 0) ?
-				pHit + nHit * EPSILON :
-				pHit - nHit * EPSILON;
+			Vector shadowRayOrigin = pHit + Lnormal * EPSILON;
 
-			if (L * nHit > 0) {
-				// not in shadow
-				// usar metodo intercepts da sphere com argumentos ray (origin : pHit, direction : L.nomrmalized()) e float -> devolve distancia
-				// ler todos os objetos da cena e ver se intercepts() da true
-				// se sim -> brake; e está em shadow
-				// se nao -> passa a frente
-				Ray rayLight = Ray(shadowPointOrigin, L.normalize());
-				Vector originLight = scene->getLight(j)->position;
-				float distLight;
+			// Secondary Shadow Ray
+			Ray shadowRay = Ray(shadowRayOrigin, Lnormal);
 
-				for (int s = 0; s < num_objects; ++s) {
-					if (scene->getObject(s)->intercepts(rayLight, distLight)) {
-						if (length > distLight) {
-							inShadow = true;
-							break;
-						}
+			Vector originLight = scene->getLight(j)->position;
+			float distLight;
+
+			bool inShadow = false;
+
+			Vector I = ray.direction * -1;
+			float cosI = I * nHit;
+
+			float tNear = INFINITY;
+			int index;
+
+			if (cosI > 0) {
+
+				// check if object is in shadow or not
+				for (int s = 0; s < num_objects; s++) {
+
+					// Object in shadow
+					if (scene->getObject(s)->intercepts(shadowRay, distLight) && (distLight < tNear)) {
+						tNear = distLight;	// distance between intersection point and intersected object
+						index = s;			// save object that has been intersected
+						inShadow = true;
 					}
 				}
-			}
 
-			// calculo de cor Phong model - direct illumination
-			if (!inShadow) {
-				Vector I = ray.direction * -1;
-				Vector H = (L.normalize() + I).normalize();
+				// Calculate color when not in shadow
+				if (!inShadow){
+						Vector H = (Lnormal + I).normalize();
 
-				Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * L), 0.0f);
-				Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
-				color += diff + spec;
+						Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * Lnormal), 0.0f);
+						Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
+						color += diff + spec;
+				}
 			}
+		
 		}
 
 		if (depth >= MAX_DEPTH) {
 			return scene->GetBackgroundColor();
 		}
 
-		
+		/*
 		// object is transparent. Compute REFRACTION ray
 		if (transmitanceFlag != 0) {
 
 			Vector V = ray.direction;
-			Vector n = nHit;
 			Vector refractionDir;
 
 			float cosi = clamp(V * nHit, -1, 1);
@@ -593,7 +600,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			// Ray is outside object
 			else {
 				std::swap(etai, etat);
-				n = nHit * -1;
+				nHit = nHit * -1;
 			}
 
 			float eta = etai / etat; // Snells Law: n_1 / n_2

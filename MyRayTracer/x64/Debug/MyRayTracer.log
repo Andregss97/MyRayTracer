@@ -4,6 +4,6 @@ C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(42,14): warning C4244: 'a
 C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(41,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(40,28): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(463,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(580,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(592,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   MyRayTracer.vcxproj -> C:\Users\Administrator\MyRayTracer\x64\Debug\MyRayTracer.exe
   0 File(s) copied
