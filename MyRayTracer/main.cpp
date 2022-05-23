@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <chrono>
 #include <conio.h>
+#include <time.h>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -35,6 +36,12 @@ bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 #define CAPTION "Whitted Ray-Tracer"
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
+
+#define NSAMPLES 4
+
+#define ANTIALIASING true
+#define	SOFTSHADOWS true
+#define LIGHT_SIDE 0.5
 
 unsigned int FrameCount = 0;
 
@@ -488,7 +495,7 @@ void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
 }
 
 
-Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medium 1 where the ray is travelling
+Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //index of refraction of medium 1 where the ray is travelling
 {
 
 	Color color;
@@ -504,6 +511,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 	int num_objects = scene->getNumObjects();
 	int num_lights = scene->getNumLights();
 
+	Light* light;
 
 	// search for intersections -> choose closest object
 	for (int k = 0; k < num_objects; k++) {
@@ -527,8 +535,22 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 		nHit = object->getNormal(pHit);
 
 		for (int j = 0; j < num_lights; j++) {
-			// L vector: from point intersection to light source
-			Vector L = scene->getLight(j)->position - pHit;
+			light = scene->getLight(j);
+			Vector L;
+
+			if (SOFTSHADOWS && ANTIALIASING) {
+				Vector position = Vector(
+					light->position.x + LIGHT_SIDE * (offsetX + rand_float()) / NSAMPLES,
+					light->position.y + LIGHT_SIDE * (offsetY + rand_float()) / NSAMPLES,
+					light->position.z
+					);
+				L = position - pHit;
+			}
+			else {
+				// L vector: from point intersection to light source
+				L = light->position - pHit;
+			}
+
 			float length = L.length();
 
 			Vector Lnormal = L;
@@ -583,6 +605,7 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 
 
 		Vector V = ray.direction * -1;
+		/*
 		// object is transparent. Compute REFRACTION ray
 		if (transmitanceFlag != 0) {
 
@@ -629,22 +652,19 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			}
 
 			Ray rayRefraction = Ray(refractionOrigin, refractionDir);
-			Color refractionColor = rayTracing(rayRefraction, depth + 1, ior_1);
+			Color refractionColor = rayTracing(rayRefraction, depth + 1, ior_1, offsetX, offsetY);
 
 			float kReflection; // refraction coefficient
 			fresnel(V, nHit, ior_1, kReflection);
 			color += refractionColor * (1 - kReflection);
 
 		}
+		*/
 		
-		/*
 		// object is reflective like. Compute REFLECTION ray
 		if (reflectiveFlag > 0) {
 			float kReflection; // reflection coefficient
-
-			fresnel(V, nHit, ior_1, kReflection);
-			//printf("kReflection: %f\n", kReflection);
-
+			float ior;
 
 			Vector reflectionDir = nHit*2*(V*nHit)-V;
 			Vector reflectionOrigin;
@@ -652,18 +672,22 @@ Color rayTracing(Ray ray, int depth, float ior_1)  //index of refraction of medi
 			// avoid acne efffect
 			if (reflectionDir * nHit < 0) {
 				reflectionOrigin = pHit - nHit * EPSILON;
+
 			} 
 			else {
 				reflectionOrigin = pHit + nHit * EPSILON;
 			}
 
 			Ray rayReflection = Ray(reflectionOrigin, reflectionDir);
-			Color reflectionColor = rayTracing(rayReflection, depth + 1, ior_1);
+			Color reflectionColor = rayTracing(rayReflection, depth + 1, ior_1, offsetX, offsetY);
+
+			fresnel(V, nHit, ior_1, kReflection);
+			//printf("kReflection: %f\n", kReflection);
 
 
 			color += reflectionColor * kReflection;
 	
-		}*/
+		}
 		return color;
 	}
 
@@ -688,23 +712,67 @@ void renderScene()
 		scene->GetCamera()->SetEye(Vector(camX, camY, camZ));  //Camera motion
 	}
 
-	//printf("Num_objects: %d\n", scene->getNumObjects());
+	set_rand_seed(time(NULL));
+
+
+	// Soft Shadows without antialiasing
+	if (SOFTSHADOWS && !ANTIALIASING) {
+		vector<Light*> new_lights;
+
+		int num_lights = scene->getNumLights();
+		float step = LIGHT_SIDE / NSAMPLES;
+		float start = -LIGHT_SIDE / 2 + step / 2;
+		float end = LIGHT_SIDE / 2;
+
+		for (int l = 0; l < num_lights; l++) {
+			Light* light = scene->getLight(l);
+			Color colorAvg = light->color / pow(NSAMPLES, 2);
+
+			for (float i = start; i < end; i = i + step) {
+				for (float k = start; k < end; k = k + step) {
+					Vector pos = Vector(light->position.x + i, light->position.y + k, light->position.z);
+
+					Light* newLight = new Light(pos, colorAvg);
+
+					// new scene lights is an area of finite point lights
+					new_lights.push_back(newLight);
+				}
+			}
+		}
+		scene->setLights(new_lights);
+	}
+
 	for (int y = 0; y < RES_Y; y++)
 	{
 		for (int x = 0; x < RES_X; x++)
 		{
-			Color color;
-
+			Color color = Color();
 			Vector pixel;  //viewport coordinates
-			pixel.x = x + 0.5f;
-			pixel.y = y + 0.5f;
 
-			//YOUR 2 FUNTIONS:
-			Ray ray = scene->GetCamera()->PrimaryRay(pixel);   //function from camera.h
+			// multiple primary rays per pixel
+			if (ANTIALIASING) {
 
-			color = rayTracing(ray, 1, 1.0).clamp();
+				// Jittering method
+				for (int pi = 0; pi < NSAMPLES - 1; pi++) {
+					for (int pj = 0; pj < NSAMPLES - 1; pj++) {
+						pixel.x = x + ((pi + rand_float()) / NSAMPLES);
+						pixel.y = y + ((pj + rand_float()) / NSAMPLES);
 
-			//color = scene->GetBackgroundColor(); //TO CHANGE - just for the template
+						Ray ray = scene->GetCamera()->PrimaryRay(pixel);   //function from camera.h
+						color = color + rayTracing(ray, 1, 1.0, pi, pj).clamp();
+					}
+				}
+				color = color / pow(NSAMPLES, 2);
+			}
+			// No antialiasing. One primary ray per pixel
+			else {
+				pixel.x = x + 0.5f;
+				pixel.y = y + 0.5f;
+
+				//YOUR 2 FUNTIONS:
+				Ray ray = scene->GetCamera()->PrimaryRay(pixel);   //function from camera.h
+				color = rayTracing(ray, 1, 1.0, 0, 0).clamp();	   // last two arguments = no offset
+			}
 
 			img_Data[counter++] = u8fromfloat((float)color.r());
 			img_Data[counter++] = u8fromfloat((float)color.g());
@@ -720,8 +788,8 @@ void renderScene()
 				colors[index_col++] = (float)color.b();
 			}
 		}
-
 	}
+
 	if (drawModeEnabled) {
 		drawPoints();
 		glutSwapBuffers();

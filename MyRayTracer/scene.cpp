@@ -203,10 +203,131 @@ AABB aaBox::GetBoundingBox() {
 
 bool aaBox::intercepts(Ray& ray, float& t)
 {
+	// KAY - KAJIYA ALGORITHM
 
-	printf("INTERCEPTS AABOX\n");
-	//PUT HERE YOUR CODE
-		return (false);
+	// ray origin
+	double ox = ray.origin.x;
+	double oy = ray.origin.y;
+	double oz = ray.origin.z;
+
+	// ray direction
+	double dx = ray.direction.x;
+	double dy = ray.direction.y;
+	double dz = ray.direction.z;
+
+	double tx_min, ty_min, tz_min;
+	double tx_max, ty_max, tz_max;
+
+	double a = 1.0 / dx;
+	double b = 1.0 / dy;
+	double c = 1.0 / dz;
+
+	if (a >= 0) {
+		tx_min = (min.x - ox) * a;
+		tx_max = (max.x - ox) * a;
+	} else {
+		tx_min = (max.x - ox) * a;
+		tx_max = (min.x - ox) * a;
+	}
+
+
+	if (b >= 0) {
+		ty_min = (min.y - oy) * b;
+		ty_max = (max.y - oy) * b;
+	} else {
+		ty_min = (max.y - oy) * b;
+		ty_max = (min.y - oy) * b;
+	}
+
+	if (c >= 0) {
+		tz_min = (min.z - oz) * c;
+		tz_max = (max.z - oz) * c;
+	} else {
+		tz_min = (max.z - oz) * c;
+		tz_max = (min.z - oz) * c;
+	}
+
+	float tE, tL;				// Entering and leaving t values
+	Vector face_in, face_out;	// Normals 
+
+	// find largest tE, entering t value
+	if (tx_min > ty_min) {
+		tE = tx_min;
+
+		if (a >= 0.0) {
+			face_in = Vector(-1, 0, 0);
+		} else {
+			face_in = Vector(1, 0, 0);
+		}
+	}
+	else {
+		tE = ty_min;
+
+		if (b >= 0.0) {
+			face_in = Vector(0, -1, 0);
+		}
+		else {
+			face_in = Vector(0, 1, 0);
+		}
+	}
+	if (tz_min > tE) {
+		tE = tz_min;
+
+		if (c >= 0.0) {
+			face_in = Vector(0, 0, -1);
+		}
+		else {
+			face_in = Vector(0, 0, 1);
+		}
+	}
+
+	// find smallest tL, leving t value
+	if (tx_max < ty_max) {
+		tL = tx_max;
+
+		if (a >= 0.0) {
+			face_out = Vector(1, 0, 0);
+		} else {
+			face_out = Vector(-1, 0, 0);
+		}
+	}
+	else {
+		tL = ty_max;
+		
+		if (b >= 0.0) {
+			face_out = Vector(0, 1, 0);
+		}
+		else {
+			face_out = Vector(0, -1, 0);
+		}
+	}
+
+	if (tz_max < tL) {
+		tL = tz_max;
+
+		if (c >= 0.0) {
+			face_out = Vector(0, 0, 1);
+		}
+		else {
+			face_out = Vector(0, 0, -1);
+		}
+	}
+
+	// condition for a hit
+	if (tE < tL && tL > 0) {
+		if (tE > 0) {
+			t = tE;
+			Normal = face_in;
+		}
+		else {
+			t = tL;
+			Normal = face_out;
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 Vector aaBox::getNormal(Vector point)
@@ -252,6 +373,10 @@ int Scene::getNumLights()
 	return lights.size();
 }
 
+void Scene::setLights(vector<Light*> newLights) 
+{
+	lights = newLights;
+}
 
 void Scene::addLight(Light* l)
 {

@@ -42,6 +42,8 @@ public:
         					CLAMP(0.0, B, 1.0));
         			}
 
+  Color operator / (float c)
+					{ return Color(R / c, G / c, B / c); }
 
   Color 	operator *	(float c) 
         			{ return Color(R*c, G*c, B*c); }

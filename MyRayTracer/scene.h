@@ -167,6 +167,7 @@ public:
 	int getNumLights( );
 	void addLight( Light* l );
 	Light* getLight( unsigned int index );
+	void setLights(vector<Light*> newLights);
 
 	bool load_p3f(const char *name);  //Load NFF file method
 	void create_random_scene();

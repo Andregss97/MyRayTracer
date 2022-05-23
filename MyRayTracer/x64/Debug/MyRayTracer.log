@@ -3,7 +3,13 @@ C:\Users\Administrator\MyRayTracer\MyRayTracer\maths.h(69,23): warning C4244: 'r
 C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(42,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(41,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\Administrator\MyRayTracer\MyRayTracer\color.h(40,28): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(463,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(592,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(470,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(544,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(543,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(667,10): warning C4101: 'ior': unreferenced local variable
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(715,20): warning C4244: 'argument': conversion from 'time_t' to 'const int', possible loss of data
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(724,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(729,39): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\Administrator\MyRayTracer\MyRayTracer\main.cpp(765,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
   MyRayTracer.vcxproj -> C:\Users\Administrator\MyRayTracer\x64\Debug\MyRayTracer.exe
   0 File(s) copied
