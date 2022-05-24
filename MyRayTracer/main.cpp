@@ -39,10 +39,10 @@ bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 
 #define NSAMPLES 4
 
-//#define ANTIALIASING true
-//#define	SOFTSHADOWS false
-//#define LIGHT_SIDE 0.5
-//#define DOF true
+#define ANTIALIASING true
+#define	SOFTSHADOWS true
+#define LIGHT_SIDE 0.5
+#define DOF true
 
 unsigned int FrameCount = 0;
 
@@ -509,6 +509,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 	float minDist = FLT_MAX;
 	float t;
 
+	Vector L;
 	int num_objects = scene->getNumObjects();
 	int num_lights = scene->getNumLights();
 
@@ -537,31 +538,28 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 		for (int j = 0; j < num_lights; j++) {
 			light = scene->getLight(j);
-			Vector L;
 
-			/*
 			if (SOFTSHADOWS && ANTIALIASING) {
+				float offX = offsetX * 1.0;
+				float offY = offsetY * 1.0;
+
 				Vector position = Vector(
-					light->position.x + LIGHT_SIDE * (offsetX + rand_int()) / NSAMPLES,
-					light->position.y + LIGHT_SIDE * (offsetY + rand_int()) / NSAMPLES,
-					light->position.z
-					);
+					light->position.x + LIGHT_SIDE * (offX + rand_float()) / NSAMPLES,
+					light->position.y + LIGHT_SIDE * (offY + rand_float()) / NSAMPLES,
+					light->position.z);
+
 				L = position - pHit;
 			}
 			else {
-			*/
+			
 				// L vector: from point intersection to light source
 				L = light->position - pHit;
-			//}
-
-			float length = L.length();
+			}
 
 			Vector Lnormal = L;
 			Lnormal = Lnormal.normalize();
 
-			//Vector originLight = scene->getLight(j)->position;
 			float distLight;
-
 			bool inShadow = false;
 
 			Vector I = ray.direction * -1;
@@ -696,7 +694,14 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 }
 
-
+Vector sample_unit_disk() {
+	Vector p;
+	do {
+		p = Vector(rand_float(), rand_float(), 0.0); // z component is 0, pixel has to be in lenses
+		p = p * 2 - Vector(1.0, 1.0, 0.0);			 // make sure that pixel is inside disk
+	} while (p * p >= 1.0);
+	return p;
+}
 
 // Render function by primary ray casting from the eye towards the scene's objects
 
@@ -713,7 +718,7 @@ void renderScene()
 
 	set_rand_seed(time(NULL));
 
-	/*
+	
 	// Soft Shadows without antialiasing
 	if (SOFTSHADOWS && !ANTIALIASING) {
 		vector<Light*> new_lights;
@@ -740,7 +745,7 @@ void renderScene()
 		}
 		scene->setLights(new_lights);
 	}
-	*/
+	
 
 	for (int y = 0; y < RES_Y; y++)
 	{
@@ -749,39 +754,46 @@ void renderScene()
 			Color color = Color();
 			Vector pixel;  //viewport coordinates
 
-			/*
+			
 			// multiple primary rays per pixel
 			if (ANTIALIASING) {
 
 				// Jittering method
-				for (int pi = 0; pi < NSAMPLES - 1; pi++) {
-					for (int pj = 0; pj < NSAMPLES - 1; pj++) {
+				for (int pi = 0; pi < NSAMPLES; pi++) {
+					for (int pj = 0; pj < NSAMPLES; pj++) {
 						pixel.x = x + ((pi + rand_float()) / NSAMPLES);
 						pixel.y = y + ((pj + rand_float()) / NSAMPLES);
 
-						
 						if (DOF) {
-							Ray ray = scene->GetCamera()->PrimaryRay(sample_unit_disk() * scene->GetCamera()->GetAperture(), pixel);   //function from camera.h
+							Vector lens_sample = Vector(
+								sample_unit_disk().x * scene->GetCamera()->GetAperture(),
+								sample_unit_disk().y * scene->GetCamera()->GetAperture(), 
+								0.0f
+							);
+
+							Ray ray = scene->GetCamera()->PrimaryRay(lens_sample, pixel);   //function from camera.h
 							color = color + rayTracing(ray, 1, 0.5, pi, pj).clamp();
 						}
-						
-						Ray ray = scene->GetCamera()->PrimaryRay(pixel);
-						color = color + rayTracing(ray, 1, 1, pi, pj).clamp();
+						else {
+							Ray ray = scene->GetCamera()->PrimaryRay(pixel);
+							color = color + rayTracing(ray, 1, 1.0, pi, pj).clamp();
+						}
 						
 					}
 				}
-				color = color / pow(NSAMPLES, 2);
+				color = color / (NSAMPLES * NSAMPLES);
 			}
+
 			// No antialiasing. One primary ray per pixel
 			else {
-			*/
+			
 				pixel.x = x + 0.5f;
 				pixel.y = y + 0.5f;
 
 				//YOUR 2 FUNTIONS:
 				Ray ray = scene->GetCamera()->PrimaryRay(pixel);   //function from camera.h
 				color = rayTracing(ray, 1, 1.0, 0, 0).clamp();	   // last two arguments = no offset
-			//}
+			}
 
 			img_Data[counter++] = u8fromfloat((float)color.r());
 			img_Data[counter++] = u8fromfloat((float)color.g());
