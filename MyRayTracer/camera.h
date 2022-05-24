@@ -93,16 +93,7 @@ public:
 
 	Ray PrimaryRay(const Vector& lens_sample, const Vector& pixel_sample) // DOF: Rays cast from  a thin lens sample to a pixel sample
 	{
-		Vector ps;
-		// nao seria diferenca entre pixel_sample.x - lens_sample.x ?? para conseguir distancia entre o lens_sample e o pixel i mean 
-		ps.x = w * (pixel_sample.x / res_x - 0.5f);
-		ps.y = h * (pixel_sample.y / res_y - 0.5f);
-		ps.z = -plane_dist;
-
-		Vector vX = u * ps.x;
-		Vector vY = u * ps.y;
-		Vector vZ = u * ps.z;
-		Vector ray_dir = (vX + vY + vZ).normalize();
+		Vector ray_dir;
 		Vector eye_offset;
 
 		return Ray(eye_offset, ray_dir);

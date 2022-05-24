@@ -39,9 +39,10 @@ bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 
 #define NSAMPLES 4
 
-#define ANTIALIASING true
-#define	SOFTSHADOWS true
-#define LIGHT_SIDE 0.5
+//#define ANTIALIASING true
+//#define	SOFTSHADOWS false
+//#define LIGHT_SIDE 0.5
+//#define DOF true
 
 unsigned int FrameCount = 0;
 
@@ -538,31 +539,27 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			light = scene->getLight(j);
 			Vector L;
 
+			/*
 			if (SOFTSHADOWS && ANTIALIASING) {
 				Vector position = Vector(
-					light->position.x + LIGHT_SIDE * (offsetX + rand_float()) / NSAMPLES,
-					light->position.y + LIGHT_SIDE * (offsetY + rand_float()) / NSAMPLES,
+					light->position.x + LIGHT_SIDE * (offsetX + rand_int()) / NSAMPLES,
+					light->position.y + LIGHT_SIDE * (offsetY + rand_int()) / NSAMPLES,
 					light->position.z
 					);
 				L = position - pHit;
 			}
 			else {
+			*/
 				// L vector: from point intersection to light source
 				L = light->position - pHit;
-			}
+			//}
 
 			float length = L.length();
 
 			Vector Lnormal = L;
 			Lnormal = Lnormal.normalize();
 
-			// avoid acne effect
-			Vector shadowRayOrigin = pHit + Lnormal * EPSILON;
-
-			// Secondary Shadow Ray
-			Ray shadowRay = Ray(shadowRayOrigin, Lnormal);
-
-			Vector originLight = scene->getLight(j)->position;
+			//Vector originLight = scene->getLight(j)->position;
 			float distLight;
 
 			bool inShadow = false;
@@ -576,6 +573,12 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			// Ray hits from outside of object
 			if (cosI > 0) {
 
+				// avoid acne effect
+				Vector shadowRayOrigin = pHit + Lnormal * EPSILON;
+
+				// Secondary Shadow Ray
+				Ray shadowRay = Ray(shadowRayOrigin, Lnormal);
+
 				// check if object is in shadow or not
 				for (int s = 0; s < num_objects; s++) {
 
@@ -587,13 +590,17 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 					}
 				}
 
-				// Calculate color when not in shadow
+				// Calculate color when not in shadow. Else pixel is not colored
 				if (!inShadow){
 						Vector H = (Lnormal + I).normalize();
 
+						// heuristic to calculate attenuation index
+						float k1 = 1.25;
+						float katt = 1 / (k1 * num_lights); // attenuation index
+
 						Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * Lnormal), 0.0f);
 						Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
-						color += diff + spec;
+						color += diff + (spec * katt);
 				}
 			}
 		
@@ -660,37 +667,29 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 		}
 		*/
-		
+
 		// object is reflective like. Compute REFLECTION ray
 		if (reflectiveFlag > 0) {
-			float kReflection; // reflection coefficient
-			float ior;
+			// float kReflection; // reflection coefficient - calculado so na refracao
 
-			Vector reflectionDir = nHit*2*(V*nHit)-V;
+			Vector reflectionDir = nHit*(V*nHit)*2 - V; // 2(Vn)n - V
 			Vector reflectionOrigin;
 
 			// avoid acne efffect
 			if (reflectionDir * nHit < 0) {
 				reflectionOrigin = pHit - nHit * EPSILON;
-
-			} 
-			else {
+			} else {
 				reflectionOrigin = pHit + nHit * EPSILON;
 			}
 
 			Ray rayReflection = Ray(reflectionOrigin, reflectionDir);
 			Color reflectionColor = rayTracing(rayReflection, depth + 1, ior_1, offsetX, offsetY);
 
-			fresnel(V, nHit, ior_1, kReflection);
-			//printf("kReflection: %f\n", kReflection);
-
-
-			color += reflectionColor * kReflection;
-	
+			//fresnel(V, nHit, ior_1, kReflection);- so para refracao
+			color += reflectionColor * object->GetMaterial()->GetReflection() * object->GetMaterial()->GetSpecColor();
 		}
 		return color;
 	}
-
 	else {
 		return scene->GetBackgroundColor();
 	}
@@ -714,7 +713,7 @@ void renderScene()
 
 	set_rand_seed(time(NULL));
 
-
+	/*
 	// Soft Shadows without antialiasing
 	if (SOFTSHADOWS && !ANTIALIASING) {
 		vector<Light*> new_lights;
@@ -741,6 +740,7 @@ void renderScene()
 		}
 		scene->setLights(new_lights);
 	}
+	*/
 
 	for (int y = 0; y < RES_Y; y++)
 	{
@@ -749,6 +749,7 @@ void renderScene()
 			Color color = Color();
 			Vector pixel;  //viewport coordinates
 
+			/*
 			// multiple primary rays per pixel
 			if (ANTIALIASING) {
 
@@ -758,21 +759,29 @@ void renderScene()
 						pixel.x = x + ((pi + rand_float()) / NSAMPLES);
 						pixel.y = y + ((pj + rand_float()) / NSAMPLES);
 
-						Ray ray = scene->GetCamera()->PrimaryRay(pixel);   //function from camera.h
-						color = color + rayTracing(ray, 1, 1.0, pi, pj).clamp();
+						
+						if (DOF) {
+							Ray ray = scene->GetCamera()->PrimaryRay(sample_unit_disk() * scene->GetCamera()->GetAperture(), pixel);   //function from camera.h
+							color = color + rayTracing(ray, 1, 0.5, pi, pj).clamp();
+						}
+						
+						Ray ray = scene->GetCamera()->PrimaryRay(pixel);
+						color = color + rayTracing(ray, 1, 1, pi, pj).clamp();
+						
 					}
 				}
 				color = color / pow(NSAMPLES, 2);
 			}
 			// No antialiasing. One primary ray per pixel
 			else {
+			*/
 				pixel.x = x + 0.5f;
 				pixel.y = y + 0.5f;
 
 				//YOUR 2 FUNTIONS:
 				Ray ray = scene->GetCamera()->PrimaryRay(pixel);   //function from camera.h
 				color = rayTracing(ray, 1, 1.0, 0, 0).clamp();	   // last two arguments = no offset
-			}
+			//}
 
 			img_Data[counter++] = u8fromfloat((float)color.r());
 			img_Data[counter++] = u8fromfloat((float)color.g());
