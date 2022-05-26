@@ -31,7 +31,7 @@ bool drawModeEnabled = true;
 
 bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 
-#define MAX_DEPTH 4  //number of bounces
+#define MAX_DEPTH 6  //number of bounces
 
 #define CAPTION "Whitted Ray-Tracer"
 #define VERTEX_COORD_ATTRIB 0
@@ -466,11 +466,11 @@ void setupGLUT(int argc, char* argv[])
 
 // Fresnel equation to calculate the amount of light reflected
 // kr -> Ratio of reflected light for a given incident direction (I) and surfance normal (nHit)
-void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
+void fresnel(Vector& I, Vector& nHit, float& ior, float& kr) {
 
 	float cosi = clamp(I * nHit, -1, 1);
-	float etai = 1;				// refraction index of the medium the ray is in before entering the second medium
-	float etat = ior;			// refraction index of the object
+	float etai = 1;                // refraction index of the medium the ray is in before entering the second medium
+	float etat = ior;            // refraction index of the object
 
 	if (cosi > 0) {
 		std::swap(etai, etat);
@@ -484,8 +484,8 @@ void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
 	}
 
 	else {
-		float cost = sqrtf(std::max(0.f, 1 - sint * sint));	
-		cosi = fabsf(cosi);	// absolute value
+		float cost = sqrtf(std::max(0.f, 1 - sint * sint));
+		cosi = fabsf(cosi);    // absolute value
 
 		// Fresnel equations
 		float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
@@ -493,6 +493,31 @@ void fresnel(Vector &I, Vector &nHit, float &ior, float &kr){
 
 		kr = (Rs * Rs + Rp * Rp) / 2;
 	}
+}
+
+void schlik(Vector& I, Vector& nHit, float& ior, float& kr, float ior2) {
+
+	float ni = ior;                // refraction index of the medium the ray is in before entering the second medium
+	float nt = ior2;            // refraction index of the object
+
+	Vector V = I;
+
+	float cos0i = clamp(V * nHit, -1, 1);
+
+	float angle = acosf(cos0i);
+
+	float sin0t = (ior / ior2) * sqrtf(1 - pow(cos0i, 2));
+
+	//otherAngle = 0t = arcsin(sin0t)
+	float otherAngle = asinf(sin0t);
+
+	if (cos0i < 0) {
+		angle = otherAngle;
+	}
+
+	float r0 = pow(((ni - nt) / (ni + nt)), 2);
+
+	kr = r0 + (1 - r0) * pow((1 - cosf(angle)), 5);
 }
 
 
@@ -533,6 +558,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 		
 		float transmitanceFlag = object->GetMaterial()->GetTransmittance();
 		float reflectiveFlag = object->GetMaterial()->GetReflection();
+		float refrIndex = object->GetMaterial()->GetRefrIndex();
 
 		nHit = object->getNormal(pHit);
 
@@ -607,42 +633,45 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 		if (depth >= MAX_DEPTH) {
 			return scene->GetBackgroundColor();
 		}
+		
+		Vector V = ray.direction;
 
+		float kReflection = 0.0f;
+		fresnel(V, nHit, refrIndex, kReflection);
+		//schlik(V, nHit, ior_1, kReflection, refrIndex);
 
-		Vector V = ray.direction * -1;
-		/*
 		// object is transparent. Compute REFRACTION ray
 		if (transmitanceFlag != 0) {
 
 			Vector refractionDir;
-			Vector nAux;
+			Vector nAux = nHit;
 
 			float cosi = clamp(V * nHit, -1, 1);
 
-			float etai = 1;		// refraction index of the medium the ray is in before entering the second medium
-			float etat = ior_1; // refraction index of the object
-			
+			float ni = ior_1;        // refraction index of the medium the ray is in before entering the second medium
+			float nt = refrIndex; // refraction index of the object
+
 			// Ray is inside object
 			if (cosi < 0) {
 				cosi = -cosi;
 			}
 			// Ray is outside object
 			else {
-				std::swap(etai, etat);
+				std::swap(ni, nt);
 				nAux = nHit * -1;
 			}
 
-			float eta = etai / etat; // Snells Law: n_1 / n_2
+			float snell = ni / nt; // Snells Law: n_1 / n_2
 
 			// Compute wether incident light is completelly reflected rather than refracted
-			float k = 1 - eta * eta * (1 - cosi * cosi);
+			float cosi2 = 1 - snell * snell * (1 - cosi * cosi);
 
 			// total internal reflection. There is no refraction
-			if (k < 0) {
-				refractionDir = Vector(0,0,0).normalize();
+			if (cosi2 < 0) {
+				refractionDir = Vector(0, 0, 0).normalize();
 			}
 			else {
-				refractionDir = (V*eta + nHit*(eta * cosi - sqrtf(k))).normalize();
+				refractionDir = (V * snell + nAux*(snell*cosi - sqrtf(cosi2))).normalize();
 			}
 
 			Vector refractionOrigin;
@@ -659,16 +688,13 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			Ray rayRefraction = Ray(refractionOrigin, refractionDir);
 			Color refractionColor = rayTracing(rayRefraction, depth + 1, ior_1, offsetX, offsetY);
 
-			float kReflection; // refraction coefficient
-			fresnel(V, nHit, ior_1, kReflection);
 			color += refractionColor * (1 - kReflection);
 
 		}
-		*/
 
 		// object is reflective like. Compute REFLECTION ray
 		if (reflectiveFlag > 0) {
-			// float kReflection; // reflection coefficient - calculado so na refracao
+			V = ray.direction * -1;
 
 			Vector reflectionDir = nHit*(V*nHit)*2 - V; // 2(Vn)n - V
 			Vector reflectionOrigin;
@@ -683,7 +709,6 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			Ray rayReflection = Ray(reflectionOrigin, reflectionDir);
 			Color reflectionColor = rayTracing(rayReflection, depth + 1, ior_1, offsetX, offsetY);
 
-			//fresnel(V, nHit, ior_1, kReflection);- so para refracao
 			color += reflectionColor * object->GetMaterial()->GetReflection() * object->GetMaterial()->GetSpecColor();
 		}
 		return color;
@@ -694,14 +719,6 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 }
 
-Vector sample_unit_disk() {
-	Vector p;
-	do {
-		p = Vector(rand_float(), rand_float(), 0.0); // z component is 0, pixel has to be in lenses
-		p = p * 2 - Vector(1.0, 1.0, 0.0);			 // make sure that pixel is inside disk
-	} while (p * p >= 1.0);
-	return p;
-}
 
 // Render function by primary ray casting from the eye towards the scene's objects
 
@@ -730,7 +747,7 @@ void renderScene()
 
 		for (int l = 0; l < num_lights; l++) {
 			Light* light = scene->getLight(l);
-			Color colorAvg = light->color / pow(NSAMPLES, 2);
+			Color colorAvg = light->color / (NSAMPLES * NSAMPLES);
 
 			for (float i = start; i < end; i = i + step) {
 				for (float k = start; k < end; k = k + step) {
@@ -753,7 +770,7 @@ void renderScene()
 		{
 			Color color = Color();
 			Vector pixel;  //viewport coordinates
-
+			Ray ray = scene->GetCamera()->PrimaryRay(pixel); // Is like having a null ray
 			
 			// multiple primary rays per pixel
 			if (ANTIALIASING) {
@@ -765,20 +782,21 @@ void renderScene()
 						pixel.y = y + ((pj + rand_float()) / NSAMPLES);
 
 						if (DOF) {
+							Vector disk = rnd_unit_disk();
+							// sample_unit_disk returns point inside unit disk
 							Vector lens_sample = Vector(
-								sample_unit_disk().x * scene->GetCamera()->GetAperture(),
-								sample_unit_disk().y * scene->GetCamera()->GetAperture(), 
+								disk.x * scene->GetCamera()->GetAperture(),
+								disk.y * scene->GetCamera()->GetAperture(), 
 								0.0f
 							);
 
-							Ray ray = scene->GetCamera()->PrimaryRay(lens_sample, pixel);   //function from camera.h
-							color = color + rayTracing(ray, 1, 0.5, pi, pj).clamp();
+							ray = scene->GetCamera()->PrimaryRay(lens_sample, pixel);
 						}
 						else {
-							Ray ray = scene->GetCamera()->PrimaryRay(pixel);
-							color = color + rayTracing(ray, 1, 1.0, pi, pj).clamp();
+							ray = scene->GetCamera()->PrimaryRay(pixel);
 						}
-						
+
+						color = color + rayTracing(ray, 1, 1.0, pi, pj).clamp();
 					}
 				}
 				color = color / (NSAMPLES * NSAMPLES);
@@ -786,12 +804,11 @@ void renderScene()
 
 			// No antialiasing. One primary ray per pixel
 			else {
-			
 				pixel.x = x + 0.5f;
 				pixel.y = y + 0.5f;
 
 				//YOUR 2 FUNTIONS:
-				Ray ray = scene->GetCamera()->PrimaryRay(pixel);   //function from camera.h
+				ray = scene->GetCamera()->PrimaryRay(pixel);   //function from camera.h
 				color = rayTracing(ray, 1, 1.0, 0, 0).clamp();	   // last two arguments = no offset
 			}
 
