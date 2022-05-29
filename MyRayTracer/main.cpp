@@ -42,7 +42,7 @@ bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 #define ANTIALIASING true
 #define	SOFTSHADOWS true
 #define LIGHT_SIDE 0.5
-#define DOF true
+#define DOF false
 
 unsigned int FrameCount = 0;
 

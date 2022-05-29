@@ -35,8 +35,16 @@ AABB Triangle::GetBoundingBox() {
 }
 
 Vector Triangle::getNormal(Vector point)
-{
-	return normal;
+{	
+	Vector center = Vector(0, 0, 0);
+	center.x = (points[1].x + points[2].x + points[3].x) / 3;
+	center.y = (points[1].y + points[2].y + points[3].y) / 3;
+	center.z = (points[1].x + points[2].x + points[3].x) / 3;
+
+	Vector normal = Vector(0, 0, 0);
+	normal = point - center;
+	
+	return (normal.normalize());
 }
 
 //
@@ -187,7 +195,9 @@ AABB Sphere::GetBoundingBox() {
 	Vector a_min;
 	Vector a_max ;
 
-	//PUT HERE YOUR CODE
+	a_min = Vector(center.x - radius, center.y - radius, center.z - radius);
+	a_max = Vector(center.x + radius, center.y + radius, center.z + radius);
+
 	return(AABB(a_min, a_max));
 }
 
@@ -332,7 +342,11 @@ bool aaBox::intercepts(Ray& ray, float& t)
 
 Vector aaBox::getNormal(Vector point)
 {
-	return Normal;
+	Vector center = (max + min)/2;
+	Vector normal = Vector(0, 0, 0);
+	normal = point - center;
+
+	return (normal.normalize());
 }
 
 Scene::Scene()
