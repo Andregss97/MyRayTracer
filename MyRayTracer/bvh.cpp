@@ -46,13 +46,105 @@ void BVH::Build(vector<Object *> &objs) {
 		}
 
 void BVH::build_recursive(int left_index, int right_index, BVHNode *node) {
-	   //PUT YOUR CODE HERE
+
+		int num_objs = (right_index - left_index);
+
+		if (num_objs <= Threshold) {
+			node->makeLeaf(left_index, num_objs);
+		}
+		else {
+
+			AABB aabb = node->getAABB();
+
+			int dim = -1;
+
+			Vector diff = aabb.max - aabb.min;
+
+			float maxDim = std::max(std::max(diff.x, diff.y), diff.z);
+
+			if (maxDim == diff.x ) {
+				dim = 0;
+			}
+			else if (maxDim == diff.y) {
+				dim = 1;
+			}
+			else {
+				dim = 2;
+			}
+
+			Comparator cmp;
+			cmp.dimension = dim;
+
+			sort(objects.begin() + left_index, objects.begin() + right_index, cmp);
+
+			float mid = (aabb.max.getAxisValue(dim) + aabb.min.getAxisValue(dim)) * 0.5;
+
+			int split_index;
+
+			//Make sure that neither left nor right is completely empty
+			if (objects[left_index]->getCentroid().getAxisValue(dim) > mid ||
+				objects[right_index - 1]->getCentroid().getAxisValue(dim) <= mid) {
+				mid = 0;
+				for (split_index = left_index; split_index < right_index; split_index++) {
+					mid += objects[split_index]->getCentroid().getAxisValue(dim);
+				}
+				mid /= num_objs;
+			}
+
+			//Split intersectables objects into left and right by finding a split_index
+			if (objects[left_index]->getCentroid().getAxisValue(dim) > mid ||
+				objects[right_index - 1]->getCentroid().getAxisValue(dim) <= mid) {
+
+				split_index = left_index + Threshold;
+			}
+			else {
+				for (split_index = left_index; split_index < right_index; split_index++) {
+					if (objects[split_index]->getCentroid().getAxisValue(dim) > mid) {
+						break;
+					}
+				}
+			}
+
+			//Create two new nodes, leftNode and rightNode and assign bounding boxes
+			Vector min_right, min_left;
+			min_right = Vector(FLT_MAX, FLT_MAX, FLT_MAX);
+			min_left = min_right;
+			Vector max_right, max_left;
+			max_right = Vector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+			max_left = max_right;
+
+			AABB leftBox = AABB(min_left, max_left);
+			AABB rightBox = AABB(min_right, max_right);
+
+			for (int left = left_index; left < split_index; left++) {
+				leftBox.extend(objects[left]->GetBoundingBox());
+			}
+
+			for (int right = split_index; right < right_index; right++) {
+				rightBox.extend(objects[right]->GetBoundingBox());
+			}
 
 
-		//right_index, left_index and split_index refer to the indices in the objects vector
-	   // do not confuse with left_nodde_index and right_node_index which refer to indices in the nodes vector. 
-	    // node.index can have a index of objects vector or a index of nodes vector
-			
+			// Create two new nodes, leftNode and rightNode and assign bounding boxes
+			BVHNode* leftNode = new BVHNode();
+			BVHNode* rightNode = new BVHNode();
+
+
+			leftNode->setAABB(leftBox);
+
+			rightNode->setAABB(rightBox);
+
+			//Initiate current node as an interior node with leftNode and rightNode as children: 
+			node->makeNode(nodes.size());
+
+			//Push back leftNode and rightNode into nodes vector 
+			nodes.push_back(leftNode);
+			nodes.push_back(rightNode);
+
+			build_recursive(left_index, split_index, leftNode);
+			build_recursive(split_index, right_index, rightNode);
+
+		}	
 		
 	}
 
