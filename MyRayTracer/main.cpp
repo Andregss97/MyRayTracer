@@ -545,7 +545,6 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 		if (!grid_ptr->Traverse(ray, &object, pHit)) {
 			object = NULL;
 		}
-
 	}
 
 	// no acceleration structure
