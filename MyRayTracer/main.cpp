@@ -733,6 +733,20 @@ void renderScene()
 		scene->GetCamera()->SetEye(Vector(camX, camY, camZ));  //Camera motion
 	}
 
+	if (Accel_Struct == GRID_ACC) {
+		grid_ptr = &Grid();
+
+		int num_objects = scene->getNumObjects();
+		vector <Object*> objs;
+
+		for (int o = 0; o < num_objects; o++) {
+			objs.push_back(scene->getObject(o));
+		}
+
+		grid_ptr->Build(objs);
+	}
+
+
 	set_rand_seed(time(NULL));
 
 	
@@ -785,6 +799,7 @@ void renderScene()
 							Vector disk = rnd_unit_disk();
 							// sample_unit_disk returns point inside unit disk
 							Vector lens_sample = Vector(
+
 								disk.x * scene->GetCamera()->GetAperture(),
 								disk.y * scene->GetCamera()->GetAperture(), 
 								0.0f

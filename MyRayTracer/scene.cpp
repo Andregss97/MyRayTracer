@@ -37,9 +37,9 @@ AABB Triangle::GetBoundingBox() {
 Vector Triangle::getNormal(Vector point)
 {	
 	Vector center = Vector(0, 0, 0);
-	center.x = (points[1].x + points[2].x + points[3].x) / 3;
-	center.y = (points[1].y + points[2].y + points[3].y) / 3;
-	center.z = (points[1].x + points[2].x + points[3].x) / 3;
+	center.x = (points[0].x + points[1].x + points[2].x) / 3.0;
+	center.y = (points[0].y + points[1].y + points[2].y) / 3.0;
+	center.z = (points[0].x + points[1].x + points[2].x) / 3.0;
 
 	Vector normal = Vector(0, 0, 0);
 	normal = point - center;
