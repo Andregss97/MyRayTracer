@@ -74,7 +74,6 @@ public:
 	// Two important variables: point of origin (eye) and vector that defines ray direction (ray_dir)
 	Ray PrimaryRay(const Vector& pixel_sample) //  Rays cast from the Eye to a pixel sample which is in Viewport coordinates
 	{
-		// Vector ps is vector from origin to pixel
 		Vector ps;
 		ps.x = w * (pixel_sample.x / res_x - 0.5f);
 		ps.y = h * (pixel_sample.y / res_y - 0.5f);
