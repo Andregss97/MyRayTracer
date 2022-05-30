@@ -86,7 +86,7 @@ Scene* scene = NULL;
 
 Grid* grid_ptr = NULL;
 BVH* bvh_ptr = NULL;
-accelerator Accel_Struct = NONE;
+accelerator Accel_Struct = GRID_ACC;
 
 int RES_X, RES_Y;
 
@@ -540,14 +540,24 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 	Light* light;
 
-	// search for intersections -> choose closest object
-	for (int k = 0; k < num_objects; k++) {
-		Object *obj = scene->getObject(k);
-		if (obj->intercepts(ray, t)) {
+	if (Accel_Struct == GRID_ACC) {
+		// There is no intersection points
+		if (!grid_ptr->Traverse(ray, &object, pHit)) {
+			object = NULL;
+		}
+	}
 
-			if (t < minDist) {
-				minDist = t;
-				object = scene->getObject(k);
+	// no acceleration structure
+	else {
+		// search for intersections -> choose closest object
+		for (int k = 0; k < num_objects; k++) {
+			Object* obj = scene->getObject(k);
+			if (obj->intercepts(ray, t)) {
+
+				if (t < minDist) {
+					minDist = t;
+					object = scene->getObject(k);
+				}
 			}
 		}
 	}
@@ -594,40 +604,49 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			float tNear = INFINITY;
 			int index;
 
-			// Ray hits from outside of object
-			if (cosI > 0) {
+			// avoid acne effect
+			Vector shadowRayOrigin = pHit + Lnormal * EPSILON;
 
-				// avoid acne effect
-				Vector shadowRayOrigin = pHit + Lnormal * EPSILON;
+			// Secondary Shadow Ray
+			Ray shadowRay = Ray(shadowRayOrigin, Lnormal);
 
-				// Secondary Shadow Ray
-				Ray shadowRay = Ray(shadowRayOrigin, Lnormal);
 
-				// check if object is in shadow or not
-				for (int s = 0; s < num_objects; s++) {
-
-					// Object in shadow
-					if (scene->getObject(s)->intercepts(shadowRay, distLight) && (distLight < tNear)) {
-						tNear = distLight;	// distance between intersection point and intersected object
-						index = s;			// save object that has been intersected
-						inShadow = true;
-					}
-				}
-
-				// Calculate color when not in shadow. Else pixel is not colored
-				if (!inShadow){
-						Vector H = (Lnormal + I).normalize();
-
-						// heuristic to calculate attenuation index
-						float k1 = 1.25;
-						float katt = 1 / (k1 * num_lights); // attenuation index
-
-						Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * Lnormal), 0.0f);
-						Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
-						color += diff + (spec * katt);
+			if (Accel_Struct == GRID_ACC) {
+				// for shadow rays
+				if (grid_ptr->Traverse(shadowRay)) {
+					inShadow = true;
 				}
 			}
-		
+			else {
+				// Ray hits from outside of object
+				if (cosI > 0) {
+
+					// check if object is in shadow or not
+					for (int s = 0; s < num_objects; s++) {
+
+						// Object in shadow
+						if (scene->getObject(s)->intercepts(shadowRay, distLight) && (distLight < tNear)) {
+							tNear = distLight;	// distance between intersection point and intersected object
+							index = s;			// save object that has been intersected
+							inShadow = true;
+						}
+					}
+				}
+			}
+			
+
+			// Calculate color when not in shadow. Else pixel is not colored
+			if (!inShadow) {
+				Vector H = (Lnormal + I).normalize();
+
+				// heuristic to calculate attenuation index
+				float k1 = 1.25;
+				float katt = 1 / (k1 * num_lights); // attenuation index
+
+				Color diff = scene->getLight(j)->color * object->GetMaterial()->GetDiffuse() * object->GetMaterial()->GetDiffColor() * max((nHit * Lnormal), 0.0f);
+				Color spec = scene->getLight(j)->color * object->GetMaterial()->GetSpecular() * object->GetMaterial()->GetSpecColor() * pow(max((nHit * H), 0.0f), object->GetMaterial()->GetShine());
+				color += diff + (spec * katt);
+			}
 		}
 
 		if (depth >= MAX_DEPTH) {
@@ -732,20 +751,6 @@ void renderScene()
 		glClear(GL_COLOR_BUFFER_BIT);
 		scene->GetCamera()->SetEye(Vector(camX, camY, camZ));  //Camera motion
 	}
-
-	if (Accel_Struct == GRID_ACC) {
-		grid_ptr = &Grid();
-
-		int num_objects = scene->getNumObjects();
-		vector <Object*> objs;
-
-		for (int o = 0; o < num_objects; o++) {
-			objs.push_back(scene->getObject(o));
-		}
-
-		grid_ptr->Build(objs);
-	}
-
 
 	set_rand_seed(time(NULL));
 
