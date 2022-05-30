@@ -21,8 +21,25 @@ Triangle::Triangle(Vector& P0, Vector& P1, Vector& P2)
 	normal.normalize();
 
 	//YOUR CODE to Calculate the Min and Max for bounding box
-	Min = Vector(+FLT_MAX, +FLT_MAX, +FLT_MAX);
-	Max = Vector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+	float minx, miny, minz, maxx, maxy, maxz;
+
+	minx = std::min(P0.x, P1.x);
+	minx = std::min(minx, P2.x);
+	miny = std::min(P0.y, P1.y);
+	miny = std::min(miny, P2.y);
+	minz = std::min(P0.z, P1.z);
+	minz = std::min(minz, P2.z);
+
+	maxx = std::max(P0.x, P1.x);
+	maxx = std::max(maxx, P2.x);
+	maxy = std::max(P0.y, P1.y);
+	maxy = std::max(maxy, P2.y);
+	maxz = std::max(P0.z, P1.z);
+	maxz = std::max(maxz, P2.z);
+
+	Min = Vector(minx, miny, minz);
+	Max = Vector(maxx, maxy, maxz);
 
 
 	// enlarge the bounding box a bit just in case...
@@ -37,9 +54,9 @@ AABB Triangle::GetBoundingBox() {
 Vector Triangle::getNormal(Vector point)
 {	
 	Vector center = Vector(0, 0, 0);
-	center.x = (points[1].x + points[2].x + points[3].x) / 3;
-	center.y = (points[1].y + points[2].y + points[3].y) / 3;
-	center.z = (points[1].x + points[2].x + points[3].x) / 3;
+	center.x = (points[0].x + points[1].x + points[2].x) / 3;
+	center.y = (points[0].y + points[1].y + points[2].y) / 3;
+	center.z = (points[0].x + points[1].x + points[2].x) / 3;
 
 	Vector normal = Vector(0, 0, 0);
 	normal = point - center;
