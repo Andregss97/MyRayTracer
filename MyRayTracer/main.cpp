@@ -545,6 +545,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 		if (!grid_ptr->Traverse(ray, &object, pHit)) {
 			object = NULL;
 		}
+
 	}
 
 	// no acceleration structure
@@ -560,12 +561,12 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 				}
 			}
 		}
+		pHit = ray.origin + ray.direction * minDist;
 	}
 
 	// If there was an object that collided with the ray
 	if (object != NULL) {
-		pHit = ray.origin + ray.direction * minDist;
-		
+
 		float transmitanceFlag = object->GetMaterial()->GetTransmittance();
 		float reflectiveFlag = object->GetMaterial()->GetReflection();
 		float refrIndex = object->GetMaterial()->GetRefrIndex();
@@ -602,7 +603,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			float cosI = I * nHit;
 
 			float tNear = INFINITY;
-			int index;
+			//int index;
 
 			// avoid acne effect
 			Vector shadowRayOrigin = pHit + Lnormal * EPSILON;
@@ -627,7 +628,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 						// Object in shadow
 						if (scene->getObject(s)->intercepts(shadowRay, distLight) && (distLight < tNear)) {
 							tNear = distLight;	// distance between intersection point and intersected object
-							index = s;			// save object that has been intersected
+							//index = s;			// save object that has been intersected
 							inShadow = true;
 						}
 					}
@@ -940,7 +941,7 @@ void init_scene(void)
 	img_Data = (uint8_t*)malloc(3 * RES_X*RES_Y * sizeof(uint8_t));
 	if (img_Data == NULL) exit(1);
 
-	Accel_Struct = scene->GetAccelStruct();   //Type of acceleration data structure
+	//Accel_Struct = scene->GetAccelStruct();   //Type of acceleration data structure
 
 	if (Accel_Struct == GRID_ACC) {
 		grid_ptr = new Grid();
