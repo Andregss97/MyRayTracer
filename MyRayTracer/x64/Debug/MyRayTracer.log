@@ -7,7 +7,5 @@ C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\bvh.cpp(25,4
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\bvh.cpp(45,43): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\bvh.cpp(80,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\bvh.cpp(138,31): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\bvh.cpp(202,30): warning C4474: 'printf' : too many arguments passed for format string
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\bvh.cpp(202,30): message : placeholders and their parameters expect 0 variadic arguments, but 1 were provided
   MyRayTracer.vcxproj -> C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\x64\Debug\MyRayTracer.exe
   0 File(s) copied

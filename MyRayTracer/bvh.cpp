@@ -172,23 +172,21 @@ bool BVH::Traverse(Ray& ray, Object** hit_obj, Vector& hit_point) {
 					AABB bboxLeft = leftChild->getAABB();
 					AABB bboxRight = rightChild->getAABB();
 
-					if (bboxLeft.intercepts(LocalRay, tmp) && bboxLeft.intercepts(LocalRay, tmp2)) {
+					if (bboxLeft.intercepts(LocalRay, tmp) && bboxRight.intercepts(LocalRay, tmp2)) {
 
 						if (tmp < tmp2) {
-
 							currentNode = leftChild;
-							StackItem(rightChild, tmp2);
+							hit_stack.push(StackItem(rightChild, tmp2));
 						}
 						else {
-
 							currentNode = rightChild;
-							StackItem(leftChild, tmp);
+							hit_stack.push(StackItem(leftChild, tmp));
 						}
 					}
-					else if (bboxLeft.intercepts(LocalRay, tmp) && !bboxLeft.intercepts(LocalRay, tmp2)) {
+					else if (bboxLeft.intercepts(LocalRay, tmp) && !bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = leftChild;
 					}
-					else if (!bboxLeft.intercepts(LocalRay, tmp) && bboxLeft.intercepts(LocalRay, tmp2)) {
+					else if (!bboxLeft.intercepts(LocalRay, tmp) && bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = rightChild;
 					}
 					else {
@@ -252,14 +250,14 @@ bool BVH::Traverse(Ray& ray) {  //shadow ray with length
 					AABB bboxLeft = leftChild->getAABB();
 					AABB bboxRight = rightChild->getAABB();
 
-					if (bboxLeft.intercepts(LocalRay, tmp) && bboxLeft.intercepts(LocalRay, tmp2)) {
+					if (bboxLeft.intercepts(LocalRay, tmp) && bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = leftChild;
-						StackItem(rightChild, tmp2);
+						hit_stack.push(StackItem(rightChild, tmp2));
 					}
-					else if (bboxLeft.intercepts(LocalRay, tmp) && !bboxLeft.intercepts(LocalRay, tmp2)) {
+					else if (bboxLeft.intercepts(LocalRay, tmp) && !bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = leftChild;
 					}
-					else if (!bboxLeft.intercepts(LocalRay, tmp) && bboxLeft.intercepts(LocalRay, tmp2)) {
+					else if (!bboxLeft.intercepts(LocalRay, tmp) && bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = rightChild;
 					}
 					else {
@@ -267,8 +265,10 @@ bool BVH::Traverse(Ray& ray) {  //shadow ray with length
 					}
 				}
 				else {
-					for (auto obj : objects) {
-						if (obj->intercepts(LocalRay, tmp) && tmp < length) {
+					int index = currentNode->getIndex();
+					int numObjs = currentNode->getNObjs();
+					for (int i = index; i < (index + numObjs); i++) {
+						if (objects[i]->intercepts(LocalRay, tmp) && tmp < length) {
 							return true;
 						}
 					}
