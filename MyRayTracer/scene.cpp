@@ -351,11 +351,8 @@ bool aaBox::intercepts(Ray& ray, float& t)
 
 Vector aaBox::getNormal(Vector point)
 {
-	Vector center = (max + min)/2;
-	Vector normal = Vector(0, 0, 0);
-	normal = point - center;
 
-	return (normal.normalize());
+	return (Normal.normalize());
 }
 
 Scene::Scene()

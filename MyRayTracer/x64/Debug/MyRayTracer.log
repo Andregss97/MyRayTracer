@@ -1,21 +1,4 @@
-﻿  main.cpp
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\maths.h(69,23): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\color.h(42,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\color.h(41,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\color.h(40,28): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(471,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(505,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(509,39): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(518,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(520,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(585,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(586,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(590,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(589,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(679,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(766,20): warning C4244: 'argument': conversion from 'time_t' to 'const int', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\main.cpp(775,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  scene.cpp
+﻿  scene.cpp
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\maths.h(69,23): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\color.h(42,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\color.h(41,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
@@ -27,42 +10,41 @@ C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(29
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(305,8): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(314,8): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(325,8): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(376,23): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(396,22): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(528,23): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(529,23): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(468,8): warning C4101: 't_intersec': unreferenced local variable
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(594,56): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(594,53): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(594,46): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(594,42): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(594,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(648,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(652,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(725,56): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(766,40): warning C4244: 'argument': conversion from 'time_t' to 'const int', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(770,46): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(776,59): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(776,145): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(795,59): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(795,80): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(795,29): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(797,7): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(799,77): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(799,62): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(799,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(800,38): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(805,116): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(805,95): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(805,74): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(806,38): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(811,95): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(812,38): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(821,91): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(826,45): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(826,91): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(831,45): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(831,72): warning C4305: 'argument': truncation from 'double' to 'float'
-  Generating Code...
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(373,23): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(393,22): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(525,23): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(526,23): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(465,8): warning C4101: 't_intersec': unreferenced local variable
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(591,56): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(591,53): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(591,46): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(591,42): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(591,34): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(645,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(649,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(722,56): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(763,40): warning C4244: 'argument': conversion from 'time_t' to 'const int', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(767,46): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(773,59): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(773,145): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(792,59): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(792,80): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(792,29): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(794,7): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(796,77): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(796,62): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(796,47): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(797,38): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(802,116): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(802,95): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(802,74): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(803,38): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(808,95): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(809,38): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(818,91): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(823,45): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(823,91): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(828,45): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\MyRayTracer\scene.cpp(828,72): warning C4305: 'argument': truncation from 'double' to 'float'
   MyRayTracer.vcxproj -> C:\Users\andre\source\repos\MyRayTracer_git\MyRayTracer\x64\Debug\MyRayTracer.exe
   0 File(s) copied
