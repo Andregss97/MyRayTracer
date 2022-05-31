@@ -86,7 +86,7 @@ Scene* scene = NULL;
 
 Grid* grid_ptr = NULL;
 BVH* bvh_ptr = NULL;
-accelerator Accel_Struct = GRID_ACC;
+accelerator Accel_Struct = BVH_ACC;
 
 int RES_X, RES_Y;
 
@@ -546,6 +546,15 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			object = NULL;
 		}
 	}
+	else if (Accel_Struct == BVH_ACC) {
+		// There is no intersection points
+		if (!bvh_ptr->Traverse(ray, &object, pHit)) {
+			object = NULL;
+		}
+		else {
+			printf("Há Intercepção");
+		}
+	}
 
 	// no acceleration structure
 	else {
@@ -614,6 +623,11 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			if (Accel_Struct == GRID_ACC) {
 				// for shadow rays
 				if (grid_ptr->Traverse(shadowRay)) {
+					inShadow = true;
+				}
+			}
+			else if (Accel_Struct == BVH_ACC) {
+				if (bvh_ptr->Traverse(shadowRay)) {
 					inShadow = true;
 				}
 			}

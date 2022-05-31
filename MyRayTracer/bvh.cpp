@@ -150,23 +150,135 @@ void BVH::build_recursive(int left_index, int right_index, BVHNode *node) {
 
 bool BVH::Traverse(Ray& ray, Object** hit_obj, Vector& hit_point) {
 			float tmp;
+			float tmp2;
 			float tmin = FLT_MAX;  //contains the closest primitive intersection
 			bool hit = false;
 
+			Ray LocalRay = ray;
 			BVHNode* currentNode = nodes[0];
+			Object* ClosestObj = NULL;
 
-			//PUT YOUR CODE HERE
-			
-			return(false);
+			AABB bbox = currentNode->getAABB();
+
+			if (!bbox.intercepts(LocalRay, tmp)) {
+				return(false);
+			}
+
+			while (true) {
+				if (!currentNode->isLeaf()) {
+					int index = currentNode->getIndex();
+					BVHNode* leftChild = nodes[index];
+					BVHNode* rightChild = nodes[index + 1];
+					AABB bboxLeft = leftChild->getAABB();
+					AABB bboxRight = rightChild->getAABB();
+
+					if (bboxLeft.intercepts(LocalRay, tmp) && bboxLeft.intercepts(LocalRay, tmp2)) {
+
+						if (tmp < tmp2) {
+
+							currentNode = leftChild;
+							StackItem(rightChild, tmp2);
+						}
+						else {
+
+							currentNode = rightChild;
+							StackItem(leftChild, tmp);
+						}
+					}
+					else if (bboxLeft.intercepts(LocalRay, tmp) && !bboxLeft.intercepts(LocalRay, tmp2)) {
+						currentNode = leftChild;
+					}
+					else if (!bboxLeft.intercepts(LocalRay, tmp) && bboxLeft.intercepts(LocalRay, tmp2)) {
+						currentNode = rightChild;
+					}
+					else {
+						// Do nothing, let the code reach the stack-popping part
+					}
+				}
+				else {
+					int index = currentNode->getIndex();
+					int numObjs = currentNode->getNObjs();
+					for (int i = index; i < (index + numObjs); i++) {
+						if (objects[i]->intercepts(LocalRay, tmp) && tmp < tmin) {
+							tmin = tmp;
+							ClosestObj = objects[i];
+						}
+					}
+				}
+
+				while (!hit_stack.empty() || hit) {
+					StackItem item = hit_stack.top();
+					if (item.t < tmin) {
+						currentNode = item.ptr;
+						hit = true;
+					}
+				}
+
+				if (hit_stack.empty()) {
+					if (ClosestObj) {
+						*hit_obj = ClosestObj;
+						hit_point = ray.origin + ray.direction * tmin;
+						return true;
+					}
+					else {
+						return false;
+					}
+				}
+			}
 	}
 
 bool BVH::Traverse(Ray& ray) {  //shadow ray with length
 			float tmp;
+			float tmp2;
 
 			double length = ray.direction.length(); //distance between light and intersection point
 			ray.direction.normalize();
 
-			//PUT YOUR CODE HERE
+			Ray LocalRay = ray;
+			BVHNode* currentNode = nodes[0];
+			Object* ClosestObj = NULL;
 
-			return(false);
+			AABB bbox = currentNode->getAABB();
+
+			if (!bbox.intercepts(LocalRay, tmp)) {
+				return(false);
+			}
+
+			while (true) {
+				if (!currentNode->isLeaf()) {
+					int index = currentNode->getIndex();
+					BVHNode* leftChild = nodes[index];
+					BVHNode* rightChild = nodes[index + 1];
+					AABB bboxLeft = leftChild->getAABB();
+					AABB bboxRight = rightChild->getAABB();
+
+					if (bboxLeft.intercepts(LocalRay, tmp) && bboxLeft.intercepts(LocalRay, tmp2)) {
+						currentNode = leftChild;
+						StackItem(rightChild, tmp2);
+					}
+					else if (bboxLeft.intercepts(LocalRay, tmp) && !bboxLeft.intercepts(LocalRay, tmp2)) {
+						currentNode = leftChild;
+					}
+					else if (!bboxLeft.intercepts(LocalRay, tmp) && bboxLeft.intercepts(LocalRay, tmp2)) {
+						currentNode = rightChild;
+					}
+					else {
+						// Do nothing, let the code reach the stack-popping part
+					}
+				}
+				else {
+					for (auto obj : objects) {
+						if (obj->intercepts(LocalRay, tmp) && tmp < length) {
+							return true;
+						}
+					}
+				}
+
+				StackItem item = hit_stack.top();
+				currentNode = item.ptr;
+
+				if (hit_stack.empty()) {
+					return false;
+				}
+			}
 	}		
