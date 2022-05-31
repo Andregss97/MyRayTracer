@@ -177,17 +177,21 @@ bool BVH::Traverse(Ray& ray, Object** hit_obj, Vector& hit_point) {
 						if (tmp < tmp2) {
 							currentNode = leftChild;
 							hit_stack.push(StackItem(rightChild, tmp2));
+							continue;
 						}
 						else {
 							currentNode = rightChild;
 							hit_stack.push(StackItem(leftChild, tmp));
+							continue;
 						}
 					}
 					else if (bboxLeft.intercepts(LocalRay, tmp) && !bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = leftChild;
+						continue;
 					}
 					else if (!bboxLeft.intercepts(LocalRay, tmp) && bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = rightChild;
+						continue;
 					}
 					else {
 						// Do nothing, let the code reach the stack-popping part
@@ -204,11 +208,12 @@ bool BVH::Traverse(Ray& ray, Object** hit_obj, Vector& hit_point) {
 					}
 				}
 
-				while (!hit_stack.empty() || hit) {
+				while (!hit_stack.empty()) {
 					StackItem item = hit_stack.top();
+					hit_stack.pop();
 					if (item.t < tmin) {
 						currentNode = item.ptr;
-						hit = true;
+						break;
 					}
 				}
 
@@ -216,6 +221,7 @@ bool BVH::Traverse(Ray& ray, Object** hit_obj, Vector& hit_point) {
 					if (ClosestObj) {
 						*hit_obj = ClosestObj;
 						hit_point = ray.origin + ray.direction * tmin;
+
 						return true;
 					}
 					else {
@@ -253,12 +259,15 @@ bool BVH::Traverse(Ray& ray) {  //shadow ray with length
 					if (bboxLeft.intercepts(LocalRay, tmp) && bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = leftChild;
 						hit_stack.push(StackItem(rightChild, tmp2));
+						continue;
 					}
-					else if (bboxLeft.intercepts(LocalRay, tmp) && !bboxRight.intercepts(LocalRay, tmp2)) {
+					else if (bboxLeft.intercepts(LocalRay, tmp)) {
 						currentNode = leftChild;
+						continue;
 					}
-					else if (!bboxLeft.intercepts(LocalRay, tmp) && bboxRight.intercepts(LocalRay, tmp2)) {
+					else if (bboxRight.intercepts(LocalRay, tmp2)) {
 						currentNode = rightChild;
+						continue;
 					}
 					else {
 						// Do nothing, let the code reach the stack-popping part
@@ -273,9 +282,11 @@ bool BVH::Traverse(Ray& ray) {  //shadow ray with length
 						}
 					}
 				}
-
-				StackItem item = hit_stack.top();
-				currentNode = item.ptr;
+				if (!hit_stack.empty()) {
+					StackItem item = hit_stack.top();
+					hit_stack.pop();
+					currentNode = item.ptr;
+				}
 
 				if (hit_stack.empty()) {
 					return false;

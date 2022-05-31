@@ -551,9 +551,6 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 		if (!bvh_ptr->Traverse(ray, &object, pHit)) {
 			object = NULL;
 		}
-		else {
-			printf("Há Intercepção");
-		}
 	}
 
 	// no acceleration structure
