@@ -732,12 +732,10 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			Vector reflectionOrigin;
 
 
-			float roughness_param = 0.3;
-
 			reflectionDir = nHit * (V * nHit) * 2 - V; // 2(Vn)n - V
 
 			if (FUZZY_REFLECTION > 0) {
-				Vector sphereSample = rnd_unit_sphere() * roughness_param;
+				Vector sphereSample = rnd_unit_sphere() * FUZZY_REFLECTION;
 				reflectionDir = (reflectionDir + sphereSample).normalize();
 			}
 
