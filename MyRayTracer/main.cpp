@@ -42,7 +42,9 @@ bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 #define ANTIALIASING true
 #define	SOFTSHADOWS true
 #define LIGHT_SIDE 0.5
-#define DOF false
+#define DOF true
+#define FUZZY_REFLECTION 0.6
+#define SKYBOX false
 
 unsigned int FrameCount = 0;
 
@@ -86,7 +88,7 @@ Scene* scene = NULL;
 
 Grid* grid_ptr = NULL;
 BVH* bvh_ptr = NULL;
-accelerator Accel_Struct = BVH_ACC;
+accelerator Accel_Struct = GRID_ACC;
 
 int RES_X, RES_Y;
 
@@ -706,6 +708,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 			Vector refractionOrigin;
 
+			
 			// avoid acne effect
 			if (nAux * refractionDir < 0) {
 				refractionOrigin = pHit - nAux * EPSILON;
@@ -714,7 +717,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			else {
 				refractionOrigin = pHit + nAux * EPSILON;
 			}
-
+			
 			Ray rayRefraction = Ray(refractionOrigin, refractionDir);
 			Color refractionColor = rayTracing(rayRefraction, depth + 1, ior_1, offsetX, offsetY);
 
@@ -722,18 +725,28 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 		}
 
+		V = ray.direction * -1;
 		// object is reflective like. Compute REFLECTION ray
 		if (reflectiveFlag > 0) {
-			V = ray.direction * -1;
-
-			Vector reflectionDir = nHit*(V*nHit)*2 - V; // 2(Vn)n - V
+			Vector reflectionDir;
 			Vector reflectionOrigin;
 
-			// avoid acne efffect
-			if (reflectionDir * nHit < 0) {
-				reflectionOrigin = pHit - nHit * EPSILON;
-			} else {
+
+			float roughness_param = 0.3;
+
+			reflectionDir = nHit * (V * nHit) * 2 - V; // 2(Vn)n - V
+
+			if (FUZZY_REFLECTION > 0) {
+				Vector sphereSample = rnd_unit_sphere() * roughness_param;
+				reflectionDir = (reflectionDir + sphereSample).normalize();
+			}
+
+			//outside
+			if (V*nHit>0){
 				reflectionOrigin = pHit + nHit * EPSILON;
+			}
+			else {
+				reflectionOrigin = pHit - nHit * EPSILON;
 			}
 
 			Ray rayReflection = Ray(reflectionOrigin, reflectionDir);
@@ -743,10 +756,11 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 		}
 		return color;
 	}
-	else {
-		return scene->GetBackgroundColor();
+	else if (SKYBOX){
+		return scene->GetSkyboxColor(ray);
 	}
-
+	
+	return scene->GetBackgroundColor();
 }
 
 
