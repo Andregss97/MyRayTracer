@@ -60,61 +60,59 @@ Vector Triangle::getNormal(Vector point)
 // Ray/Triangle intersection test using Tomas Moller-Ben Trumbore algorithm.
 //
 
-bool Triangle::intercepts(Ray& r, float& t ) {
+bool Triangle::intercepts(Ray& r, float& t) {
 
-	//Define Vertex of Triangles
 	Vector vertex0 = points[0];
 	Vector vertex1 = points[1];
 	Vector vertex2 = points[2];
 
-	//Define variables
-	Vector edge1, edge2, h, s, q;
-	float a, f, u, v;
+	Vector N = normal;  //N 
+	float area2 = N.length();
 
-	//Define edges, edge1 = b - a and edge2 = c - a .
-	// B - A
-	edge1 = vertex1 - vertex0;
-	// C - A
-	edge2 = vertex2 - vertex0;
+	Vector dir = r.direction;
+	Vector orig = r.origin;
 
-	Vector rayVector = r.direction;
-	Vector rayOrigin = r.origin;
+	// Step 1: finding P
 
-	// D X (C - A)
-	h = rayVector % edge2;
+	// check if ray and plane are parallel ?
+	float Ndir = N * dir;
+	if (fabs(Ndir) < EPSILON)  //almost 0 
+		return false;  //they are parallel so they don't intersect ! 
 
-	// (B - A) * (D X (C-A)
-	a = edge1 * h;
+	// compute d parameter using equation 2
+	float d = (N * -1) * (vertex0);
 
-	if (a > -EPSILON && a < EPSILON)
-		return false;    // This ray is parallel to this triangle.
-	f = 1.0 / a;
+	// compute t (equation 3)
+	t = -(N * (orig)+d) / Ndir;
 
-	//O - A
-	s = rayOrigin - vertex0;
+	// check if the triangle is in behind the ray
+	if (t < 0) return false;  //the triangle is behind 
 
-	u = f * (s * h);
+	// compute the intersection point using equation 1
+	Vector P = orig + dir * t;
 
-	if (u < 0.0 || u > 1.0)
-		return false;
+	// Step 2: inside-outside test
+	Vector C;  //vector perpendicular to triangle's plane 
 
-	q = s % edge1;
+	// edge 0
+	Vector edge0 = vertex1 - vertex0;
+	Vector vp0 = P - vertex0;
+	C = edge0 % vp0;
+	if (N * C < 0) return false;  //P is on the right side 
 
-	v = f * (rayVector * q);
+	// edge 1
+	Vector edge1 = vertex2 - vertex1;
+	Vector vp1 = P - vertex1;
+	C = edge1 % vp1;
+	if (N * C < 0)  return false;  //P is on the right side 
 
+	// edge 2
+	Vector edge2 = vertex0 - vertex2;
+	Vector vp2 = P - vertex2;
+	C = edge2 % vp2;
+	if (N * C < 0) return false;  //P is on the right side; 
 
-	if (v < 0.0 || u + v > 1.0)
-		return false;
-
-	// At this stage we can compute t to find out where the intersection point is on the line.
-	t = f * (edge2 * q);
-
-	if (t > EPSILON) // ray intersection
-	{
-		return true;
-	}
-	else // This means that there is a line intersection but not a ray intersection.
-		return false;
+	return true;  //this ray hits the triangle 
 }
 
 Plane::Plane(Vector& a_PN, float a_D)
