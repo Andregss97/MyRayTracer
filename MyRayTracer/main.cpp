@@ -739,8 +739,8 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 				reflectionDir = (reflectionDir + sphereSample).normalize();
 			}
 
-			//outside
-			if (V*nHit>0){
+			// Ray hits from outside of object
+			if (V*nHit > 0){
 				reflectionOrigin = pHit + nHit * EPSILON;
 			}
 			else {
