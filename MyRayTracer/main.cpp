@@ -31,19 +31,19 @@ bool drawModeEnabled = true;
 
 bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 
-#define MAX_DEPTH 6  //number of bounces
+#define MAX_DEPTH 10  //number of bounces
 
 #define CAPTION "Whitted Ray-Tracer"
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define NSAMPLES 4
+#define NSAMPLES 64
 
 #define ANTIALIASING false
 #define	SOFTSHADOWS false
 #define LIGHT_SIDE 0.5
 #define DOF false
-#define FUZZY_REFLECTION 0.6
+#define FUZZY_REFLECTION 0.0
 #define SKYBOX false
 
 unsigned int FrameCount = 0;
@@ -88,6 +88,7 @@ Scene* scene = NULL;
 
 Grid* grid_ptr = NULL;
 BVH* bvh_ptr = NULL;
+//accelerator Accel_Struct = NONE;
 //accelerator Accel_Struct = GRID_ACC;
 accelerator Accel_Struct = BVH_ACC;
 
@@ -527,8 +528,7 @@ void schlik(Vector& I, Vector& nHit, float& ior, float& kr, float ior2) {
 Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //index of refraction of medium 1 where the ray is travelling
 {
 
-	Color color;
-
+	Color color = Color();
 
 	Vector pHit; // intersection point
 	Vector nHit; // normal in pHit
@@ -610,7 +610,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			Vector I = ray.direction * -1;
 			float cosI = I * nHit;
 
-			float tNear = INFINITY;
+			float tNear = L.length();
 			//int index;
 
 			// avoid acne effect
@@ -619,14 +619,20 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 			// Secondary Shadow Ray
 			Ray shadowRay = Ray(shadowRayOrigin, Lnormal);
 
-
 			if (Accel_Struct == GRID_ACC) {
+
+				shadowRay = Ray(shadowRayOrigin, L);
+
 				// for shadow rays
 				if (grid_ptr->Traverse(shadowRay)) {
 					inShadow = true;
 				}
 			}
 			else if (Accel_Struct == BVH_ACC) {
+
+				shadowRay = Ray(shadowRayOrigin, L);
+
+				// for shadow rays
 				if (bvh_ptr->Traverse(shadowRay)) {
 					inShadow = true;
 				}
@@ -640,9 +646,9 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 						// Object in shadow
 						if (scene->getObject(s)->intercepts(shadowRay, distLight) && (distLight < tNear)) {
-							tNear = distLight;	// distance between intersection point and intersected object
 							//index = s;			// save object that has been intersected
 							inShadow = true;
+							break;
 						}
 					}
 				}
@@ -672,7 +678,6 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 		float kReflection = 0.0f;
 		fresnel(V, nHit, refrIndex, kReflection);
 		//schlik(V, nHit, ior_1, kReflection, refrIndex);
-
 		// object is transparent. Compute REFRACTION ray
 		if (transmitanceFlag != 0) {
 
@@ -701,7 +706,7 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 
 			// total internal reflection. There is no refraction
 			if (cosi2 < 0) {
-				refractionDir = Vector(0, 0, 0).normalize();
+				refractionDir = Vector(0, 0, 0);
 			}
 			else {
 				refractionDir = (V * snell + nAux*(snell*cosi - sqrtf(cosi2))).normalize();
@@ -758,8 +763,9 @@ Color rayTracing(Ray ray, int depth, float ior_1,int offsetX, int offsetY)  //in
 	else if (SKYBOX){
 		return scene->GetSkyboxColor(ray);
 	}
-	
-	return scene->GetBackgroundColor();
+	else {
+		return scene->GetBackgroundColor();
+	}
 }
 
 

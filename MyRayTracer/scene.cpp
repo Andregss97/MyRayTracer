@@ -24,23 +24,16 @@ Triangle::Triangle(Vector& P0, Vector& P1, Vector& P2)
 
 	float minx, miny, minz, maxx, maxy, maxz;
 
-	minx = std::min(P0.x, P1.x);
-	minx = std::min(minx, P2.x);
-	miny = std::min(P0.y, P1.y);
-	miny = std::min(miny, P2.y);
-	minz = std::min(P0.z, P1.z);
-	minz = std::min(minz, P2.z);
+	minx = MIN3(a.x, b.x, c.x);
+	miny = MIN3(a.y, b.y, c.y);
+	minz = MIN3(a.z, b.z, c.z);
 
-	maxx = std::max(P0.x, P1.x);
-	maxx = std::max(maxx, P2.x);
-	maxy = std::max(P0.y, P1.y);
-	maxy = std::max(maxy, P2.y);
-	maxz = std::max(P0.z, P1.z);
-	maxz = std::max(maxz, P2.z);
+	maxx = MAX3(a.x, b.x, c.x);
+	maxy = MAX3(a.y, b.y, c.y);
+	maxz = MAX3(a.z, b.z, c.z);
 
 	Min = Vector(minx, miny, minz);
 	Max = Vector(maxx, maxy, maxz);
-
 
 	// enlarge the bounding box a bit just in case...
 	Min -= EPSILON;
@@ -60,6 +53,7 @@ Vector Triangle::getNormal(Vector point)
 // Ray/Triangle intersection test using Tomas Moller-Ben Trumbore algorithm.
 //
 
+/*
 bool Triangle::intercepts(Ray& r, float& t) {
 
 	Vector vertex0 = points[0];
@@ -113,6 +107,112 @@ bool Triangle::intercepts(Ray& r, float& t) {
 	if (N * C < 0) return false;  //P is on the right side; 
 
 	return true;  //this ray hits the triangle 
+}*/
+
+/*
+bool Triangle::intercepts(Ray& ray, float& t) {
+
+	Vector P0 = points[0];
+	Vector P1 = points[1];
+	Vector P2 = points[2];
+
+	float a = P0.x - P1.x;
+	float b = P0.x - P2.x;
+	float c = ray.direction.x;
+	float d = P0.x - ray.origin.x;
+
+	float e = P0.y - P1.y;
+	float f = P0.y - P2.y;
+	float g = ray.direction.y;
+	float h = P0.y - ray.origin.y;
+
+	float i = P0.z - P1.z;
+	float j = P0.z - P2.z;
+	float k = ray.direction.z;
+	float l = P0.z - ray.origin.z;
+
+	float m = f * k - g * j;
+	float n = h * k - g * l;
+	float p = f * l - h * j;
+	float q = g * i - e * k;
+	float s = e * j - f * i;
+
+	float inv_denom = 1.0 / (a * m + b * q + c * s);
+
+	float e1 = d * m - b * n - c * p;
+	float beta = e1 * inv_denom;
+
+	if (beta < 0.0) {
+		return (false);
+	}
+
+	float r = r = e * l - h * i;
+	float e2 = a * n + d * q + c * r;
+	float gamma = e2 * inv_denom;
+
+	if (gamma < 0.0f) {
+		return (false);
+	}
+
+	if (beta + gamma > 1.0f) {
+		return (false);
+	}
+
+	float e3 = a * p - b * r + d * s;
+	t = e3 * inv_denom;
+
+	if (t < 0.0000001f) {
+		return (false);
+	}
+	return (true);
+}*/
+
+bool Triangle::intercepts(Ray& ray, float& t) {
+	Vector P0 = points[0];
+	Vector P1 = points[1];
+	Vector P2 = points[2];
+
+	float a = P1.x - P0.x;
+	float b = P2.x - P0.x;
+	float c = -ray.direction.x;
+	float d = ray.origin.x - P0.x;
+
+	float e = P1.y - P0.y;
+	float f = P2.y - P0.y;
+	float g = -ray.direction.y;
+	float h = ray.origin.y - P0.y;
+
+	float i = P1.z - P0.z;
+	float j = P2.z - P0.z;
+	float k = -ray.direction.z;
+	float l = ray.origin.z - P0.z;
+
+	float denom = (a * (f * k - g * j) + b * (g * i - e * k) + c * (e * j - f * i));
+
+	float beta = (d * (f * k - g * j) + b * (g * l - h * k) + c * (h * j - f * l)) / denom;
+
+	if (beta < 0.0) {
+		return false;
+	}
+
+	float gamma = (a * (h * k - g * l) + d * (g * i - e * k) + c * (e * l - h * i)) / denom;
+
+	if (gamma < 0.0f) {
+		return false;
+	}
+
+	if (beta + gamma > 1.0f) {
+		return false;
+	}
+
+	t = (a * (f * l - h * j) + b * (h * i - e * l) +  d * (e * j - f * i )) / denom;
+
+	if (t < 0.0000001f) {
+		return false;
+	}
+
+	return true;
+
 }
 
 Plane::Plane(Vector& a_PN, float a_D)

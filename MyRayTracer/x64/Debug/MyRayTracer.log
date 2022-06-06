@@ -1,1 +1,19 @@
-﻿
+﻿  main.cpp
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\maths.h(69,23): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\color.h(42,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\color.h(41,14): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\color.h(40,28): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(475,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(509,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(513,39): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(522,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(524,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(588,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(589,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(593,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(592,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(687,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(785,20): warning C4244: 'argument': conversion from 'time_t' to 'const int', possible loss of data
+C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\MyRayTracer\main.cpp(794,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  MyRayTracer.vcxproj -> C:\Users\migue\OneDrive\Documentos\GitHub\MyRayTracer\x64\Debug\MyRayTracer.exe
+  0 File(s) copied

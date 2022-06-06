@@ -43,21 +43,21 @@ void BVH::Build(vector<Object*>& objs) {
 	root->setAABB(world_bbox);
 	nodes.push_back(root);
 	build_recursive(0, objects.size(), root); // -> root node takes all the 
-	printf("num_of_nodes:%d\n", nodes.size());
+	//printf("num_of_nodes:%d\n", nodes.size());
 	int num_leafs = 0;
 	for (int i = 0; i < nodes.size(); i++) {
 		if (nodes[i]->isLeaf()) {
 			num_leafs += 1;
 		}
 	}
-	printf("num_leafs:%d\n", num_leafs);
+	//printf("num_leafs:%d\n", num_leafs);
 }
 
 void BVH::build_recursive(int left_index, int right_index, BVHNode* node) {
 
 	int num_objs = (right_index - left_index);
 
-	printf("num_objes:%d\n", num_objs);
+	//printf("num_objes:%d\n", num_objs);
 
 	if (num_objs <= Threshold) {
 		node->makeLeaf(left_index, num_objs);
@@ -81,8 +81,6 @@ void BVH::build_recursive(int left_index, int right_index, BVHNode* node) {
 			dim = 2;
 		}
 
-		printf("Dim:%d\n", dim);
-
 		Comparator cmp;
 		cmp.dimension = dim;
 
@@ -90,8 +88,6 @@ void BVH::build_recursive(int left_index, int right_index, BVHNode* node) {
 
 
 		float mid = (aabb.max.getAxisValue(dim) + aabb.min.getAxisValue(dim)) * 0.5;
-
-		printf("mid:%d\n", mid);
 
 		int split_index;
 
@@ -111,8 +107,6 @@ void BVH::build_recursive(int left_index, int right_index, BVHNode* node) {
 				}
 			}
 		}
-
-		printf("split_index:%d\n", split_index);
 
 		//Create two new nodes, leftNode and rightNode and assign bounding boxes
 		Vector min_right, min_left;
@@ -237,7 +231,7 @@ bool BVH::Traverse(Ray& ray, Object** hit_obj, Vector& hit_point) {
 		if (changed) { continue; }
 
 		if (hit_stack.empty()) {
-			if (ClosestObj) {
+			if (ClosestObj != NULL) {
 				*hit_obj = ClosestObj;
 				hit_point = ray.origin + ray.direction * tmin;
 				return true;
@@ -256,17 +250,20 @@ bool BVH::Traverse(Ray& ray) {  //shadow ray with length
 	double length = ray.direction.length(); //distance between light and intersection point
 	ray.direction.normalize();
 
+	//Local Ray = Ray
 	Ray LocalRay = ray;
+	//CurrentNode = nodes[0];
 	BVHNode* currentNode = nodes[0];
-	Object* ClosestObj = NULL;
-
+	
+	//Check LocalRay intersection with Root(world box)
 	AABB bbox = currentNode->getAABB();
-
+	//No hit = > return false
 	if (!bbox.intercepts(LocalRay, tmp)) {
 		return(false);
 	}
-
+	//For Infinity
 	while (true) {
+		// If (NOT CurrentNode.isLeaf())
 		if (!currentNode->isLeaf()) {
 			int index = currentNode->getIndex();
 			BVHNode* leftChild = nodes[index];
@@ -275,37 +272,51 @@ bool BVH::Traverse(Ray& ray) {  //shadow ray with length
 			AABB bboxLeft = leftChild->getAABB();
 			AABB bboxRight = rightChild->getAABB();
 
+			//Intersection test with both child nodes
 			bool leftHit = bboxLeft.intercepts(LocalRay, tmp);
 			bool rightHit = bboxRight.intercepts(LocalRay, tmp2);
 
 			if (leftHit && rightHit) {
-				currentNode = leftChild;
+				//Both nodes hit => Put right one on the stack. CurrentNode = left node
 				hit_stack.push(StackItem(rightChild, tmp2));
+				currentNode = leftChild;
+				//Goto LOOP;
 				continue;
 			}
+			//Only one node hit = > CurrentNode = hit node
 			else if (leftHit) {
 				currentNode = leftChild;
+				//Goto LOOP;
 				continue;
 			}
+			//Only one node hit = > CurrentNode = hit node
 			else if (rightHit) {
 				currentNode = rightChild;
+				//Goto LOOP;
 				continue;
 			}
+			else {
+				//No Hit: Do nothing (let the stack-popping code below be reached)
+			}
 		}
+		//Else Is leaf
 		else {
 			int index = currentNode->getIndex();
 			float curr_tmp;
 			int numObjs = currentNode->getNObjs();
+			//For each primitive in leaf perform intersection testing
 			for (int i = index; i < (index + numObjs); i++) {
 				if (objects[i]->intercepts(LocalRay, curr_tmp) && curr_tmp < length) {
+					//Intersected => return true;
 					return true;
 				}
 			}
 		}
-
+		//End If
 		bool changed = false;
 
-		while (!hit_stack.empty()) {
+		if (!hit_stack.empty()) {
+			//Pop stack, CurrentNode = pop’d node
 			StackItem item = hit_stack.top();
 			hit_stack.pop();
 			currentNode = item.ptr;
@@ -314,6 +325,9 @@ bool BVH::Traverse(Ray& ray) {  //shadow ray with length
 
 		if (changed) { continue; }
 
+		//Stack is empty = > return false
 		if (hit_stack.empty()) { return false; }
+
+		//EndFor
 	}
 }
