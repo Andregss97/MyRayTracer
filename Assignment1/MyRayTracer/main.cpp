@@ -40,10 +40,10 @@ bool P3F_scene = true; //choose between P3F scene or a built-in random scene
 #define NSAMPLES 4
 
 #define ANTIALIASING true
-#define	SOFTSHADOWS true
+#define	SOFTSHADOWS false
 #define LIGHT_SIDE 0.5
 #define DOF false
-#define FUZZY_REFLECTION 0.6
+#define FUZZY_REFLECTION 0.0
 #define SKYBOX false
 
 unsigned int FrameCount = 0;
