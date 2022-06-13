@@ -303,11 +303,11 @@ Triangle createTriangle(vec3 v0, vec3 v1, vec3 v2)
     return t;
 }
 
-bool hit_triangle(Triangle t, Ray r, float tmin, float tmax, out HitRecord rec)
+bool hit_triangle(Triangle tri, Ray r, float tmin, float tmax, out HitRecord rec)
 {
-    vec3 p0 = t.a;
-    vec3 p1 = t.b;
-    vec3 p2 = t.c;
+    vec3 p0 = tri.a;
+    vec3 p1 = tri.b;
+    vec3 p2 = tri.c;
 
     float a = p1.x - p0.x;
     float b = p2.x - p0.x;
@@ -342,12 +342,12 @@ bool hit_triangle(Triangle t, Ray r, float tmin, float tmax, out HitRecord rec)
 		return false;
 	}
 
-	t = (a * (f * l - h * j) + b * (h * i - e * l) +  d * (e * j - f * i )) / denom;
+	float t = (a * (f * l - h * j) + b * (h * i - e * l) +  d * (e * j - f * i )) / denom;
 
     if(t < tmax && t > tmin)
     {
         rec.t = t;
-        rec.normal = normal;
+        rec.normal = normalize(cross((tri.b - tri.a), (tri.c - tri.a)));
         rec.pos = pointOnRay(r, rec.t);
         return true;
     }
@@ -390,7 +390,7 @@ MovingSphere createMovingSphere(vec3 center0, vec3 center1, float radius, float 
 
 vec3 center(MovingSphere mvsphere, float time)
 {
-    return mvsphere.center0 + ((time - time0) / (time1 - time0)) * (center1 - center0);
+    return mvsphere.center0 + ((time - mvsphere.time0) / (mvsphere.time1 - mvsphere.time0)) * (mvsphere.center1 - mvsphere.center0);
 }
 
 
@@ -405,8 +405,8 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
    vec3 origin = r.o;
    vec3 OC = s.center - origin;
 
-   float b = dir * OC;
-   float c = OC * OC - (s.radius * s.radius);
+   float b = dot(dir,OC);
+   float c = dot(OC, OC) - (s.radius * s.radius);
    float t;
 
 	if (c > 0.0f) {
@@ -431,7 +431,7 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
     if(t < tmax && t > tmin) {
         rec.t = t;
         rec.pos = pointOnRay(r, rec.t);
-        rec.normal = normal;
+        rec.normal = normalize(rec.pos - s.center);
         return true;
     }
     else return false;
@@ -443,14 +443,14 @@ bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitReco
     bool outside;
     float t;
 
-    vec3 center = center(s, r.time);
+    vec3 center = center(s, r.t);
 
     vec3 dir = r.d;
     vec3 origin = r.o;
     vec3 OC = center - origin;
 
-    b = dir * OC;
-    c = OC * OC - (radius * radius);
+    b = dot(dir,OC);
+    c = dot(OC, OC) - (s.radius * s.radius);
 
 	if (c > 0.0f) {
 		if (b <= 0.0f) {
@@ -471,14 +471,14 @@ bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitReco
 		t = b + discr;
 	}
 
-     //INSERT YOUR CODE HERE
-     //Calculate the moving center
+    //Calculate the moving center
     //calculate a valid t and normal
 	
     if(t < tmax && t > tmin) {
         rec.t = t;
         rec.pos = pointOnRay(r, rec.t);
-        rec.normal = normal;
+        // VERIFICAR ISTO
+        rec.normal = normalize(rec.pos - center);
         return true;
     }
     else return false;
