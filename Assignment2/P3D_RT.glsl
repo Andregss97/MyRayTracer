@@ -169,7 +169,41 @@ vec3 directlighting(pointLight pl, Ray r, HitRecord rec){
     float shininess;
     HitRecord dummy;
 
-   //INSERT YOUR CODE HERE
+
+    vec3 L = normalize(pl.pos - rec.pos);
+    float Ldistance = length(pl.pos - rec.pos);
+    vec3 N = rec.normal;
+
+    Ray shadowRay = createRay(rec.pos + epsilon * N , L);
+
+    if (max(dot(N, L), 0.0) > 0.0) {
+        if (!hit_world(shadowRay, 0.0, Ldistance, dummy)) {
+            // Diffuse material diffuse and specular components
+            if (rec.material.type == MT_DIFFUSE) {
+                shininess = 10.0;
+                diffCol = rec.material.albedo / pi * max(dot(N, L), 0.0);
+                specCol = vec3(0.1);
+            }
+            // Metal material diffuse and specular components
+            if (rec.material.type == MT_METAL) {
+                shininess = 100.0;
+                diffCol = vec3(0.0);
+                specCol = rec.material.albedo;
+            }
+            // Dialectric material diffuse and specular components
+            if (rec.material.type == MT_DIALECTRIC) {
+                shininess = 300.0;
+                diffCol = vec3(0.0);
+                specCol = vec3(0.1);
+            }
+
+            // Calculation of specular intensity with halfwayVector
+            vec3 H = normalize(L - r.d);
+            vec3 specular = specCol * pow(max(dot(H, N), 0.0), shininess);
+            // Final local color with diffuse and specular components
+            colorOut = (diffCol + specular) * pl.color;
+       }
+    }
     
 	return colorOut; 
 }
@@ -183,22 +217,24 @@ vec3 rayColor(Ray r)
     vec3 throughput = vec3(1.0f, 1.0f, 1.0f);
     for(int i = 0; i < MAX_BOUNCES; ++i)
     {
-        if(hit_world(r, 0.001, 10000.0, rec))
-        {
+        if(hit_world(r, 0.001, 10000.0, rec)) {
             //calculate direct lighting with 3 white point lights:
-            {
-                //createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0))
-                //createPointLight(vec3(8.0, 15.0, 3.0), vec3(1.0, 1.0, 1.0))
-                //createPointLight(vec3(1.0, 15.0, -9.0), vec3(1.0, 1.0, 1.0))
-
-                //for instance: col += directlighting(createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;
-            }
+                col += directlighting(createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0)), r, rec)* throughput;
+                col += directlighting(createPointLight(vec3(8.0, 15.0, 3.0), vec3(1.0, 1.0, 1.0)), r, rec)* throughput;
+                col += directlighting(createPointLight(vec3(1.0, 15.0, -9.0), vec3(1.0, 1.0, 1.0)), r, rec)* throughput;
+            
            
             //calculate secondary ray and update throughput
             Ray scatterRay;
             vec3 atten;
-            if(scatter(r, rec, atten, scatterRay))
-            {   //  insert your code here    }
+            if(scatter(r, rec, atten, scatterRay)){
+                //  insert your code here    
+                r = scatterRay;
+                throughput *= atten;
+            }
+            else{
+                break;
+            }
         
         }
         else  //background
