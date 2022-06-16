@@ -231,13 +231,14 @@ vec3 refract(vec3 rInDirection, vec3 outwardNormal, float niOverNt){
     return refracted;
 }
 
+/*
 vec3 reflect(vec3 rInDirection, vec3 recNormal){
     vec3 V = -rInDirection;
     vec3 reflected = recNormal * (V*recNormal) * 2.0 - V;
 
     return reflected;
 }
-
+*/
 float schlick(float cosine, float refIdx)
 {
     float ni = 1.0; // assume medium is air
@@ -255,7 +256,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
     if(rec.material.type == MT_DIFFUSE)
     {
         // Random diffuse scattered ray direction
-        vec3 pointS = rec.pos + rec.normal + randomInUnitSphere(gSeed);
+        vec3 pointS = rec.pos + rec.normal + normalize(randomInUnitSphere(gSeed));
         rScattered = createRay(rec.pos, normalize(pointS - rec.pos), rIn.t);
 
         atten = rec.material.albedo * max(dot(rScattered.d, rec.normal), 0.0) / pi;
@@ -270,7 +271,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         rScattered = createRay(rec.pos, normalize(reflected + rec.material.roughness * randomInUnitSphere(gSeed)));
 
         atten = rec.material.specColor;
-        return true;
+        return (dot(rScattered.d, rec.normal) > 0.0);
     }
     if(rec.material.type == MT_DIALECTRIC)
     {
@@ -284,7 +285,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         {
             outwardNormal = -rec.normal;
             niOverNt = rec.material.refIdx;
-            cosine = niOverNt * dotAux / length(rIn.d);
+            cosine = niOverNt * dotAux;
 
             atten = exp(-rec.material.refractColor);   // atten = apply Beer's law by using rec.material.refractColor
 
@@ -293,12 +294,13 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         {
             outwardNormal = rec.normal;
             niOverNt = 1.0 / rec.material.refIdx; 
-            cosine = -dotAux / length(rIn.d);
+            cosine = -dotAux;
         }
 
         //Use probabilistic math to decide if scatter a reflected ray or a refracted ray
 
         vec3 refracted = refract(rIn.d, outwardNormal, niOverNt);
+
         float reflectProb;
         
         // no total reflection
@@ -315,18 +317,17 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         {  
             //Reflection
             vec3 reflected = reflect(rIn.d, rec.normal);
-            rScattered = createRay(rec.pos, normalize(reflected), rIn.t);
-            return true;
+            rScattered = createRay(rec.pos, normalize(reflected + rec.material.roughness * randomInUnitSphere(gSeed)), rIn.t);
 
             // atten *= vec3(reflectProb); not necessary since we are only scattering reflectProb rays and not all reflected rays
         }
         else //Refraction
         {  
-            rScattered = createRay(rec.pos, normalize(refracted), rIn.t);
-            return true;
+            rScattered = createRay(rec.pos, normalize(refracted + rec.material.roughness * randomInUnitSphere(gSeed)), rIn.t);
 
             // atten *= vec3(1.0 - reflectProb); not necessary since we are only scattering 1-reflectProb rays and not all refracted rays
         }
+        return true;
     }
     return false;
 }
@@ -340,7 +341,7 @@ Triangle createTriangle(vec3 v0, vec3 v1, vec3 v2)
     return t;
 }
 
-bool hit_triangle(Triangle tri, Ray r, float tmin, float tmax, out HitRecord rec)
+bool hit_triangle(Triangle t, Ray r, float tmin, float tmax, out HitRecord rec)
 {
     vec3 p0 = tri.a;
     vec3 p1 = tri.b;
@@ -440,8 +441,9 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 {
    vec3 dir = r.d;
    vec3 origin = r.o;
-   vec3 OC = s.center - origin;
+   vec3 OC = origin - s.center;
 
+   float a = dot(dir, dir);
    float b = dot(dir,OC);
    float c = dot(OC, OC) - (s.radius * s.radius);
    float t;
@@ -452,17 +454,17 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 		}
 	}
 
-	float discr = sqrt(b * b - c);
+	float discr = sqrt(b * b - a * c);
 
 	if (discr <= 0.0f) {
 		return false;
 	}
 
 	if (c > 0.0f) {
-		t = b - discr;
+		t = b - discr / a;
 	}
 	else {
-		t = b + discr;
+		t = b + discr / a;
 	}
 	
     if(t < tmax && t > tmin) {
@@ -476,7 +478,7 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 
 bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 {
-    float b, c, delta;
+    float a, b, c, delta;
     bool outside;
     float t;
 
@@ -486,6 +488,7 @@ bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitReco
     vec3 origin = r.o;
     vec3 OC = center - origin;
 
+    a = dot(dir, dir);
     b = dot(dir,OC);
     c = dot(OC, OC) - (s.radius * s.radius);
 
@@ -495,17 +498,17 @@ bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitReco
 		}
 	}
 
-	float discr = sqrt(b * b - c);
+	float discr = sqrt(b * b - a * c);
 
 	if (discr <= 0.0f) {
 		return false;
 	}
 
 	if (c > 0.0f) {
-		t = b - discr;
+		t = b - discr / a;
 	}
 	else {
-		t = b + discr;
+		t = b + discr / a;
 	}
 
     //Calculate the moving center
