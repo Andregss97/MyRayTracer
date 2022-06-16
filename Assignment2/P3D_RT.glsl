@@ -58,7 +58,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
         rec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
     }
 
-if(hit_sphere(
+    if(hit_sphere(
         createSphere(vec3(0.0, 1.0, 0.0), -0.95),
         r,
         tmin,
@@ -200,7 +200,6 @@ vec3 directlighting(pointLight pl, Ray r, HitRecord rec){
             // Calculation of specular intensity with halfwayVector
             vec3 H = normalize(L - r.d);
             vec3 specular = specCol * pow(max(dot(H, N), 0.0), shininess);
-            
             // Final local color with diffuse and specular components
             colorOut = (diffCol + specular) * pl.color;
        }
@@ -275,7 +274,7 @@ void main()
         time0,
         time1);
 
-//usa-se o 4 canal de cor para guardar o numero de samples e não o iFrame pois quando se mexe o rato faz-se reset
+    //usa-se o 4 canal de cor para guardar o numero de samples e não o iFrame pois quando se mexe o rato faz-se reset
 
     vec4 prev = texture(iChannel0, gl_FragCoord.xy / iResolution.xy);
     vec3 prevLinear = toLinear(prev.xyz);  
