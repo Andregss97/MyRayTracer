@@ -230,7 +230,7 @@ vec3 rayColor(Ray r)
             if(scatter(r, rec, atten, scatterRay)){
                 //  insert your code here    
                 r = scatterRay;
-                throughput *= atten;
+                col *= atten;
             }
             else{
                 break;

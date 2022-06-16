@@ -223,10 +223,10 @@ vec3 refract(vec3 rInDirection, vec3 outwardNormal, float niOverNt){
 
 	// total internal reflection. There is no refraction
     if (cosi2 < 0.0) {
-        refracted = vec3(0);
+        refracted = vec3(0.0);
 	}
     else {
-        refracted = niOverNt * (normalize(rInDirection) - rInDirection * cosi) - rInDirection * sqrt(cosi2);
+        refracted = niOverNt * (normalize(rInDirection) - outwardNormal * cosi) - outwardNormal * sqrt(cosi2);
 	}
     return refracted;
 }
@@ -243,19 +243,9 @@ float schlick(float cosine, float refIdx)
     float ni = 1.0; // assume medium is air
     float nt = refIdx;
 
-	float angle = acos(cosine);
-
-	float sin0t = (ni / nt) * sqrt(1.0 - (cosine * cosine));
-
-	float otherAngle = asin(sin0t);
-
-	if (cosine < 0.0) {
-		angle = otherAngle;
-	}
-
 	float r0 = pow(((ni - nt) / (ni + nt)), 2.0);
 
-	float kr = r0 + (1.0 - r0) * pow((1.0 - cos(angle)), 5.0);
+	float kr = r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
     
     return kr;
 }
@@ -273,10 +263,10 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
     }
     if(rec.material.type == MT_METAL)
     {
-        //INSERT CODE HERE, consider fuzzy reflections
         vec3 reflected = reflect(rIn.d, rec.normal);
         //bool isScattered = dot(reflected, rec.normal) > 0.0;
 
+        // considering fuzzy reflections
         rScattered = createRay(rec.pos, normalize(reflected + rec.material.roughness * randomInUnitSphere(gSeed)));
 
         atten = rec.material.specColor;
@@ -290,7 +280,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         float dotAux = dot(rIn.d, rec.normal);
         float cosine;
 
-        if( dotAux < 0.0) //hit inside
+        if( dotAux > 0.0) //hit inside
         {
             outwardNormal = -rec.normal;
             niOverNt = rec.material.refIdx;
@@ -312,7 +302,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         float reflectProb;
         
         // no total reflection
-        if(refracted != vec3(0))
+        if(refracted != vec3(0.0))
         {
             reflectProb = schlick(cosine, rec.material.refIdx);
         }
