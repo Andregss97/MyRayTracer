@@ -140,14 +140,21 @@ Ray getRay(Camera cam, vec2 pixel_sample)  //rnd pixel_sample viewport coordinat
     //Calculate eye_offset and ray direction
 
     vec3 eye_offset = cam.eye + cam.u * ls.x + cam.v * ls.y;
-    vec3 p = vec3(
-                cam.focusDist * cam.width * ((pixel_sample.x/iResolution.x) - 0.5),
+    vec3 p = vec3
+                (cam.focusDist * cam.width  * ((pixel_sample.x/iResolution.x) - 0.5),
                 cam.focusDist * cam.height * ((pixel_sample.y/iResolution.y) - 0.5),
                 cam.focusDist * cam.planeDist) - vec3(ls, 0.0);
 
-    vec3 ray_direction = (p.x * cam.u, p.y * cam.v, p.z * cam.n);
+    
+    //vec3 camLeft = cam.eye - (cam.width * cam.focusDist)/2.0 - (cam.height * cam.focusDist)/2.0 - cam.focusDist * cam.n;
+    //vec3 ray_direction = camLeft + (p.x * cam.u, p.y * cam.v, p.z * cam.n) - eye_offset;
 
-    return createRay(eye_offset, normalize(ray_direction), time);
+    vec3 ray_dir = (cam.u*((pixel_sample.x - ls.x) / iResolution.x - 0.5f)*cam.width + cam.v*((pixel_sample.y - ls.y) / iResolution.y - 0.5f)*cam.height - cam.n*cam.focusDist * 10.0);
+    //vec3 camLeft = cam.eye - (cam.width * cam.focusDist)/2.0 - (cam.height * cam.focusDist)/2.0 - cam.focusDist * cam.n;
+    //vec3 ray_dir = camLeft + (pixel_sample.x * horizontal / iResolution.x)  + (pixel_sample.y * vertical / iResolution.y);
+    
+
+    return createRay(eye_offset, normalize(ray_dir), time);
 }
 
 // MT_ material type
@@ -341,7 +348,7 @@ Triangle createTriangle(vec3 v0, vec3 v1, vec3 v2)
     return t;
 }
 
-bool hit_triangle(Triangle t, Ray r, float tmin, float tmax, out HitRecord rec)
+bool hit_triangle(Triangle tri, Ray r, float tmin, float tmax, out HitRecord rec)
 {
     vec3 p0 = tri.a;
     vec3 p1 = tri.b;
@@ -448,32 +455,27 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
    float c = dot(OC, OC) - (s.radius * s.radius);
    float t;
 
-	if (c > 0.0f) {
-		if (b <= 0.0f) {
-			return false;
-		}
-	}
-
-	float discr = sqrt(b * b - a * c);
+	float discr = b * b - a * c;
 
 	if (discr <= 0.0f) {
 		return false;
 	}
 
 	if (c > 0.0f) {
-		t = b - discr / a;
+        discr = sqrt(discr);
+		t =  (-b - discr) / a;
 	}
 	else {
-		t = b + discr / a;
+		t =  (-b + discr) / a;
 	}
 	
     if(t < tmax && t > tmin) {
         rec.t = t;
         rec.pos = pointOnRay(r, rec.t);
-        rec.normal = normalize(rec.pos - s.center);
+        rec.normal = (rec.pos - s.center) / s.radius;
         return true;
     }
-    else return false;
+    return false;
 }
 
 bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitRecord rec)
