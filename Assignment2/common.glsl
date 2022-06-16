@@ -245,6 +245,11 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
     if(rec.material.type == MT_METAL)
     {
        //INSERT CODE HERE, consider fuzzy reflections
+        vec3 reflected = reflect(rIn.d, rec.normal);
+        bool isScattered = dot(reflected, rec.normal) > 0.0;
+
+        rScatter = vec3(reflected + rec.material.roughness*randomInUnitSphere(gSeed));
+
         atten = rec.material.specColor;
         return true;
     }
@@ -260,6 +265,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
             outwardNormal = -rec.normal;
             niOverNt = rec.material.refIdx;
             
+            atten = exp(-rec.material.refractColor);
            // atten = apply Beer's law by using rec.material.refractColor
 
         }
@@ -271,25 +277,40 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
 
         float kReflection = schlick(cosine, niOverNt);
 
+        vec3 refracted = refract(rIn.d, outwardNormal, niOverNt);
 
         //Use probabilistic math to decide if scatter a reflected ray or a refracted ray
 
         float reflectProb;
-
+        
         //if no total reflection  reflectProb = schlick(cosine, rec.material.refIdx);  
         //else reflectProb = 1.0;
 
-        if( hash1(gSeed) < reflectProb)
-        {  //Reflection
-        // rScattered = calculate reflected ray
-          // atten *= vec3(reflectProb); not necessary since we are only scattering reflectProb rays and not all reflected rays
-        
-        //else  //Refraction
-        // rScattered = calculate refracted ray
-           // atten *= vec3(1.0 - reflectProb); not necessary since we are only scattering 1-reflectProb rays and not all refracted rays
+        if(refracted != vec3(0))
+        {
+            reflectProb = schlick(cosine, rec.material.refIdx);
+        }
+        else
+        {
+            reflectProb = 1.0;
         }
 
-        return true;
+        if( hash1(gSeed) < reflectProb)
+        {  
+            //Reflection
+            rScattered = createRay(rec.pos, reflect(rIn.d, rec.normal));
+            return true;
+
+          // atten *= vec3(reflectProb); not necessary since we are only scattering reflectProb rays and not all reflected rays
+        }
+        else
+        {  
+            //Refraction
+            rScattered = createRay(rec.pos, refract(rIn.d, outwardNormal, niOverNt));
+            return true;
+
+           // atten *= vec3(1.0 - reflectProb); not necessary since we are only scattering 1-reflectProb rays and not all refracted rays
+        }
     }
     return false;
 }

@@ -200,6 +200,7 @@ vec3 directlighting(pointLight pl, Ray r, HitRecord rec){
             // Calculation of specular intensity with halfwayVector
             vec3 H = normalize(L - r.d);
             vec3 specular = specCol * pow(max(dot(H, N), 0.0), shininess);
+            
             // Final local color with diffuse and specular components
             colorOut = (diffCol + specular) * pl.color;
        }
