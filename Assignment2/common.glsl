@@ -140,21 +140,12 @@ Ray getRay(Camera cam, vec2 pixel_sample)  //rnd pixel_sample viewport coordinat
     //Calculate eye_offset and ray direction
 
     vec3 eye_offset = cam.eye + cam.u * ls.x + cam.v * ls.y;
-    vec3 p = vec3
-                (cam.focusDist * cam.width  * ((pixel_sample.x/iResolution.x) - 0.5),
-                cam.focusDist * cam.height * ((pixel_sample.y/iResolution.y) - 0.5),
-                cam.focusDist * cam.planeDist) - vec3(ls, 0.0);
+    vec3 ray_direction = vec3
+                            ( cam.width * cam.u  * ((pixel_sample.x/iResolution.x) - 0.5) +
+                            cam.height * cam.v * ((pixel_sample.y/iResolution.y) - 0.5) -
+                            cam.n * cam.planeDist * cam.focusDist) - vec3(ls, 0.0);
 
-    
-    //vec3 camLeft = cam.eye - (cam.width * cam.focusDist)/2.0 - (cam.height * cam.focusDist)/2.0 - cam.focusDist * cam.n;
-    //vec3 ray_direction = camLeft + (p.x * cam.u, p.y * cam.v, p.z * cam.n) - eye_offset;
-
-    vec3 ray_dir = (cam.u*((pixel_sample.x - ls.x) / iResolution.x - 0.5f)*cam.width + cam.v*((pixel_sample.y - ls.y) / iResolution.y - 0.5f)*cam.height - cam.n*cam.focusDist * 10.0);
-    //vec3 camLeft = cam.eye - (cam.width * cam.focusDist)/2.0 - (cam.height * cam.focusDist)/2.0 - cam.focusDist * cam.n;
-    //vec3 ray_dir = camLeft + (pixel_sample.x * horizontal / iResolution.x)  + (pixel_sample.y * vertical / iResolution.y);
-    
-
-    return createRay(eye_offset, normalize(ray_dir), time);
+    return createRay(eye_offset, normalize(ray_direction), time);
 }
 
 // MT_ material type
@@ -238,14 +229,14 @@ vec3 refract(vec3 rInDirection, vec3 outwardNormal, float niOverNt){
     return refracted;
 }
 
-/*
+
 vec3 reflect(vec3 rInDirection, vec3 recNormal){
     vec3 V = -rInDirection;
     vec3 reflected = recNormal * (V*recNormal) * 2.0 - V;
 
     return reflected;
 }
-*/
+
 float schlick(float cosine, float refIdx)
 {
     float ni = 1.0; // assume medium is air
