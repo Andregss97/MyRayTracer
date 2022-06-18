@@ -210,7 +210,7 @@ struct HitRecord
 };
 
 
-vec3 refract(vec3 rInDirection, vec3 outwardNormal, float niOverNt){
+/*vec3 refract(vec3 rInDirection, vec3 outwardNormal, float niOverNt){
 
     vec3 refracted;
 
@@ -227,16 +227,16 @@ vec3 refract(vec3 rInDirection, vec3 outwardNormal, float niOverNt){
         refracted = niOverNt * (normalize(rInDirection) - outwardNormal * cosi) - outwardNormal * sqrt(cosi2);
 	}
     return refracted;
-}
+}*/
 
 
-vec3 reflect(vec3 rInDirection, vec3 recNormal){
+/*vec3 reflect(vec3 rInDirection, vec3 recNormal){
     vec3 V = -rInDirection;
     vec3 reflected = recNormal * (V*recNormal) * 2.0 - V;
 
     return reflected;
 }
-
+*/
 float schlick(float cosine, float refIdx)
 {
     float ni = 1.0; // assume medium is air
@@ -269,7 +269,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         rScattered = createRay(rec.pos, normalize(reflected + rec.material.roughness * randomInUnitSphere(gSeed)));
 
         atten = rec.material.specColor;
-        return (dot(rScattered.d, rec.normal) > 0.0);
+        return true;
     }
     if(rec.material.type == MT_DIALECTRIC)
     {

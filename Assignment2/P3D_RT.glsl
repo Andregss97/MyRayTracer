@@ -55,7 +55,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
         rec))
     {
         hit = true;
-        rec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
+        rec.material = createDialectricMaterial(vec3(0.0), 1.0, 0.0);
     }
 
     if(hit_sphere(
@@ -66,7 +66,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
         rec))
     {
         hit = true;
-        rec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
+        rec.material = createDialectricMaterial(vec3(0.0), 1.0, 0.0);
     }
    
     int numxy = 5;
@@ -154,7 +154,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
                     {
                         hit = true;
                         rec.material.type = MT_DIALECTRIC;
-                        rec.material = createDialectricMaterial(hash3(seed), 1.2, 0.0);
+                        rec.material = createDialectricMaterial(hash3(seed), 1.0, 0.0);
                     }
                 }
             }
@@ -231,7 +231,7 @@ vec3 rayColor(Ray r)
             if(scatter(r, rec, atten, scatterRay)){
                 //  insert your code here    
                 r = scatterRay;
-                col *= atten;
+                throughput *= atten;
             }
             else{
                 return vec3(0.0);
