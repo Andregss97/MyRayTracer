@@ -221,20 +221,29 @@ float schlick(float cosine, float refIdx)
     return kr;
 }
 
-bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
-{
-    if(rec.material.type == MT_DIFFUSE)
-    {
+bool boolean_refract(const in vec3 v, const in vec3 n, const in float ni_over_nt, 
+                      out vec3 refracted) {
+    vec3 uv = normalize(v);
+    float dt = dot(uv, n);
+    float discriminant = 1.0 - ni_over_nt*ni_over_nt*(1.0 -dt*dt);
+    if (discriminant > 0.0) {
+        refracted = ni_over_nt*(uv - n*dt) - n * sqrt(discriminant);
+        return true;
+    } else { 
+        return false;
+    }
+}
+
+bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered){
+    if(rec.material.type == MT_DIFFUSE){
         // Random diffuse scattered ray direction
         vec3 pointS = rec.pos + rec.normal + normalize(randomInUnitSphere(gSeed));
         rScattered = createRay(rec.pos, normalize(pointS - rec.pos), rIn.t);
-
         atten = rec.material.albedo * max(dot(rScattered.d, rec.normal), 0.0) / pi;
         return true;
     }
-    if(rec.material.type == MT_METAL)
-    {
-        vec3 reflected = reflect(rIn.d, rec.normal);
+    if(rec.material.type == MT_METAL){
+        vec3 reflected = reflect(normalize(rIn.d), rec.normal);
         //bool isScattered = dot(reflected, rec.normal) > 0.0;
 
         // considering fuzzy reflections
@@ -242,21 +251,20 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
 
         atten = rec.material.specColor;
 
-        return true;
+        return (dot(rScattered.d, rec.normal) > 0.0);
     }
-    if(rec.material.type == MT_DIALECTRIC)
-    {
-        atten = vec3(1.0);
+    if(rec.material.type == MT_DIALECTRIC){
         vec3 outwardNormal;
+        vec3 reflected = reflect(rIn.d, rec.normal);
         float niOverNt;
+        atten = vec3(1.0);
         float dotAux = dot(rIn.d, rec.normal);
-        float cosine = -dotAux;
-
-        if( cosine < 0.0) //hit inside
-        {
+        vec3 refracted;
+        float cosine;
+        if( dot(rIn.d, rec.normal) > 0.0){ //hit inside
             outwardNormal = -rec.normal;
-            niOverNt = rec.material.refIdx;
-            
+            niOverNt = rec.material.refIdx; 
+            cosine = rec.material.refIdx * dot(rIn.d, rec.normal) / length(rIn.d);
             atten = exp(-rec.material.refractColor * rec.t);   // atten = apply Beer's law by using rec.material.refractColor
 
         }
@@ -264,41 +272,32 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         {
             outwardNormal = rec.normal;
             niOverNt = 1.0 / rec.material.refIdx; 
-            
+            cosine = -dot(rIn.d, rec.normal) / length(rIn.d);
         }
 
         //Use probabilistic math to decide if scatter a reflected ray or a refracted ray
 
-        vec3 refracted = refract(rIn.d, outwardNormal, niOverNt);
-
         float reflectProb;
         
         // no total reflection
-        if(refracted != vec3(0.0))
-        {
-            if (niOverNt > 1.0){
-                cosine = sqrt(1.0 - pow(niOverNt, 2.0) * (1.0 - pow(cosine, 2.0)));
-            }
-
+        if(boolean_refract(rIn.d, outwardNormal, niOverNt, refracted)){
             reflectProb = schlick(cosine, rec.material.refIdx);
         }
-        else
-        {
+        else{
             reflectProb = 1.0;
         }
 
-        if( hash1(gSeed) < reflectProb)
-        {  
+        if( hash1(gSeed) < reflectProb){  
             //Reflection
-            vec3 reflected = reflect(rIn.d, rec.normal);
-            rScattered = createRay(rec.pos + epsilon * rec.normal, normalize(reflected), rIn.t);
+            rScattered = createRay(rec.pos, normalize(reflected), rIn.t);
+            //rScattered = createRay(rec.pos, normalize(reflected + rec.material.roughness*randomInUnitSphere(gSeed)), rIn.t);
 
             // atten *= vec3(reflectProb); not necessary since we are only scattering reflectProb rays and not all reflected rays
         }
-        else //Refraction
-        {  
-            rScattered = createRay(rec.pos + epsilon * outwardNormal, normalize(refracted), rIn.t);
-
+        else{
+            //Refraction
+            rScattered = createRay(rec.pos, normalize(refracted), rIn.t);
+           // rScattered = createRay(rec.pos , normalize(refracted + rec.material.roughness*randomInUnitSphere(gSeed)), rIn.t);
             // atten *= vec3(1.0 - reflectProb); not necessary since we are only scattering 1-reflectProb rays and not all refracted rays
         }
         return true;
@@ -415,33 +414,35 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 {
    vec3 dir = r.d;
    vec3 origin = r.o;
-   vec3 OC = origin - s.center;
+   vec3 center = s.center;
+   vec3 OC = origin - center;
 
-   float a = dot(dir, dir);
    float b = dot(dir,OC);
    float c = dot(OC, OC) - (s.radius * s.radius);
    float t;
 
-	float discr = b * b - a * c;
+	float discr = b * b - c;
 
 	if (discr <= 0.0f) {
 		return false;
 	}
 
-	if (c > 0.0f) {
-        discr = sqrt(discr);
-		t =  (-b - discr) / a;
-	}
-	else {
-		t =  (-b + discr) / a;
-	}
-	
+    discr = sqrt(discr);
+    t = -b - discr;
     if(t < tmax && t > tmin) {
         rec.t = t;
         rec.pos = pointOnRay(r, rec.t);
-        rec.normal = (rec.pos - s.center) / s.radius;
+        rec.normal = normalize((rec.pos - center) / s.radius);
         return true;
     }
+	t = -b + discr;
+    if(t < tmax && t > tmin) {
+        rec.t = t;
+        rec.pos = pointOnRay(r, rec.t);
+        rec.normal = normalize((rec.pos - center) / s.radius);
+        return true;
+    }
+
     return false;
 }
 
@@ -457,37 +458,28 @@ bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitReco
     vec3 origin = r.o;
     vec3 OC = center - origin;
 
-    a = dot(dir, dir);
     b = dot(dir,OC);
     c = dot(OC, OC) - (s.radius * s.radius);
 
-	if (c > 0.0f) {
-		if (b <= 0.0f) {
-			return false;
-		}
-	}
-
-	float discr = sqrt(b * b - a * c);
+	float discr = b * b - c;
 
 	if (discr <= 0.0f) {
 		return false;
 	}
 
-	if (c > 0.0f) {
-		t = b - discr / a;
-	}
-	else {
-		t = b + discr / a;
-	}
-
-    //Calculate the moving center
-    //calculate a valid t and normal
-	
+    discr = sqrt(discr);
+    t = -b - discr;
     if(t < tmax && t > tmin) {
         rec.t = t;
         rec.pos = pointOnRay(r, rec.t);
-        // VERIFICAR ISTO
-        rec.normal = normalize(rec.pos - center);
+        rec.normal = normalize((rec.pos - center) / s.radius);
+        return true;
+    }
+	t = -b + discr;
+    if(t < tmax && t > tmin) {
+        rec.t = t;
+        rec.pos = pointOnRay(r, rec.t);
+        rec.normal = normalize((rec.pos - center) / s.radius);
         return true;
     }
     else return false;
