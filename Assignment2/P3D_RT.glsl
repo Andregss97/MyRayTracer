@@ -32,8 +32,8 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
         rec))
     {
         hit = true;
-        rec.material = createDiffuseMaterial(vec3(0.2, 0.95, 0.1));
-        //rec.material = createDiffuseMaterial(vec3(0.4, 0.2, 0.1));
+        //rec.material = createDiffuseMaterial(vec3(0.2, 0.95, 0.1));
+        rec.material = createDiffuseMaterial(vec3(0.4, 0.2, 0.1));
     }
 
     if(hit_sphere(
@@ -55,10 +55,10 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
         rec))
     {
         hit = true;
-        rec.material = createDialectricMaterial(vec3(0.0), 1.0, 0.0);
+        rec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
     }
 
-    if(hit_sphere(
+	if(hit_sphere(
         createSphere(vec3(0.0, 1.0, 0.0), -0.95),
         r,
         tmin,
@@ -66,7 +66,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
         rec))
     {
         hit = true;
-        rec.material = createDialectricMaterial(vec3(0.0), 1.0, 0.0);
+        rec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
     }
    
     int numxy = 5;
@@ -154,7 +154,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
                     {
                         hit = true;
                         rec.material.type = MT_DIALECTRIC;
-                        rec.material = createDialectricMaterial(hash3(seed), 1.0, 0.0);
+                        rec.material = createDialectricMaterial(hash3(seed), 1.2, 0.0);
                     }
                 }
             }
@@ -165,7 +165,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
 
 vec3 directlighting(pointLight pl, Ray r, HitRecord rec){
     vec3 diffCol, specCol;
-    vec3 colorOut = vec3(0.0, 0.0, 0.0);
+    vec3 colorOut = vec3(0.0, 0.0, 0.0); 
     float shininess;
     HitRecord dummy;
 
