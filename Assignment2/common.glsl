@@ -105,35 +105,6 @@ struct Camera
     vec3 horizontal;
     vec3 vertical;
 };
-/*
-Camera createCamera(
-    vec3 eye,
-    vec3 at,
-    vec3 worldUp,
-    float fovy,
-    float aspect,
-    float aperture,  //diametro em multiplos do pixel size
-    float focusDist,  //focal ratio
-    float time0,
-    float time1)
-{
-    Camera cam;
-    if(aperture == 0.0) cam.focusDist = 1.0; //pinhole camera then focus in on vis plane
-    else cam.focusDist = focusDist;
-    vec3 w = eye - at;
-    cam.planeDist = length(w);
-    cam.height = 2.0 * cam.planeDist * tan(fovy * pi / 180.0 * 0.5);
-    cam.width = aspect * cam.height;
-
-    cam.lensRadius = aperture * 0.5 * cam.width / iResolution.x;  //aperture ratio * pixel size; (1 pixel=lente raio 0.5)
-    cam.eye = eye;
-    cam.n = normalize(w);
-    cam.u = normalize(cross(worldUp, cam.n));
-    cam.v = cross(cam.n, cam.u);
-    cam.time0 = time0;
-    cam.time1 = time1;
-    return cam;
-}*/
 
 Camera createCamera(
     vec3 eye,
@@ -174,7 +145,6 @@ Ray getRay(Camera cam, vec2 pixel_sample){  //rnd pixel_sample viewport coordina
     float time = cam.time0 + hash1(gSeed) * (cam.time1 - cam.time0);
     
     //Calculate eye_offset and ray direction
-
     vec3 eye_offset = cam.eye + cam.u * ls.x + cam.v * ls.y;
 
 
@@ -316,7 +286,6 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered){
         }
 
         //Use probabilistic math to decide if scatter a reflected ray or a refracted ray
-
         float reflectProb;
         
         // no total reflection
@@ -481,44 +450,6 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
     return false;
 }
 
-/*
-bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitRecord rec)
-{
-    float a, b, c, delta;
-    bool outside;
-    float t;
-
-    vec3 moving_center = center(s, r.t);
-
-    vec3 dir = r.d;
-    vec3 origin = r.o;
-    vec3 OC = moving_center - origin;
-
-    a = dot(dir, dir);
-    b = dot(dir,OC);
-    c = dot(OC, OC) - (s.radius * s.radius);
-
-	float discr = b * b - a * c;
-
-	if (discr <= 0.0f) {
-		return false;
-	}
-
-    discr = sqrt(discr);
-    t = (-b - discr) / a;
-    if(t < tmin || tmax < t){
-        t = (-b + discr) / a;
-        if(t < tmin || tmax < t){
-            return false;
-        }
-    }
-
-    rec.t = t;
-    rec.pos = pointOnRay(r, rec.t);
-    rec.normal = normalize((rec.pos - moving_center) / s.radius);
-    return true;
-}*/
-
 bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 {
     float a, b, c, delta;
@@ -571,7 +502,7 @@ Box createBox(vec3 min, vec3 max){
 
 bool hit_box(Box box, Ray r, float tmin, float tmax, out HitRecord rec)
 {
-// ray origin
+    // ray origin
 	float ox = r.o.x;
 	float oy = r.o.y;
 	float oz = r.o.z;
@@ -614,7 +545,7 @@ bool hit_box(Box box, Ray r, float tmin, float tmax, out HitRecord rec)
 	}
 
 	float tE, tL;				// Entering and leaving t values
-	vec3 face_in, face_out;	// Normals 
+	vec3 face_in, face_out;	    // Normals 
 
 	// find largest tE, entering t value
 	if (tx_min > ty_min) {
